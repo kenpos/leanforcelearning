@@ -21,10 +21,14 @@ const int mapsize = 15;
 const int ACTION = 5;
 const bool blindcount = true;//何ターン敵を見ていないか　という状態数を反映させるか否か
 const bool checkmovenemy = false;
-const int MAXGAME = 200000;//回
-const int EPISODECOUNT = 300;
+const int MAXGAME = 300000;//回
+const int EPISODECOUNT = 500; //1エピソード辺りどの程度
 
-const int EPSILON = 30;
+const int EVALUATIONCOUNT = 100;//回　一回の評価エピソード数
+
+int outputcount = 10;
+
+const int EPSILON = 40;
 
 const double gamma = 0.8;
 const double alpha = 0.1;
@@ -69,6 +73,20 @@ int chooseAnAction(State playerstate, int playernum);
 //int QlearningMethod(State p1, State p2, State enemy, int gamecount);
 int SoloQlearningMethod(State p1, State enemy, int gamecount);
 bool calcSoloReward(State state, State afterstate, int action, State player, State enemy, long double AttenuationAlpha);
+int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount);
 //bool calcReward(State state, State afterstate, int action, State player, State player2, State enemy, int playernumber, long double AttenuationAlpha);
 State initState(int, int);
-void outputQvalueTable();
+void outputQvalueTable(int gamecount);
+void outputEvaluationQvalueTable(int evacount);
+int chooseAnEvaluationAction(State playerstate, int playernum);
+void EvaluationFunction(int evacount);
+
+//ファイル出力関係
+static bool checkExistenceOfFolder(const std::string folder_name) {
+	if (_mkdir(folder_name.c_str()) == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
