@@ -1,23 +1,16 @@
-#include "Header.h"
+ï»¿#include "Header.h"
 
 using namespace std;
 
-
-
-// ƒƒ‹ƒZƒ“ƒkEƒcƒCƒXƒ^[–@‚É‚æ‚é‹[——”¶¬Ší‚ğA
-// ƒn[ƒhƒEƒFƒA—”‚ğƒV[ƒh‚É‚µ‚Ä‰Šú‰»
-
+// ãƒ¡ãƒ«ã‚»ãƒ³ãƒŒãƒ»ãƒ„ã‚¤ã‚¹ã‚¿ãƒ¼æ³•ã«ã‚ˆã‚‹æ“¬ä¼¼ä¹±æ•°ç”Ÿæˆå™¨ã‚’ã€
+// ãƒãƒ¼ãƒ‰ã‚¦ã‚§ã‚¢ä¹±æ•°ã‚’ã‚·ãƒ¼ãƒ‰ã«ã—ã¦åˆæœŸåŒ–
+random_device seed_gen;
+mt19937 engine(seed_gen());
+std::uniform_int_distribution<> dist1(0, mapsize);
+std::uniform_int_distribution<> action(0, ACTION);
+std::uniform_int_distribution<> makerandom(0, 100);
 
 int main() {
-	checkExistenceOfFolder("Evaluation/" );
-	checkExistenceOfFolder("moveData/" );
-	checkExistenceOfFolder("Qval/" );
-	checkExistenceOfFolder("Result/" );
-	
-	random_device seed_gen;
-	mt19937 engine(seed_gen());
-	std::uniform_int_distribution<> dist1(0, mapsize);
-
 	State p1 = initState(dist1(engine), dist1(engine));
 	//State p2 =  initState(dist1(engine), (int)dist1(engine));
 	State enemy = initState(dist1(engine), dist1(engine));
@@ -27,7 +20,7 @@ int main() {
 	setEnemy(enemy);
 
 	initializeQvalue();
-	//ƒtƒHƒ‹ƒ_‚ª–³‚¯‚ê‚Îì¬
+	//ãƒ•ã‚©ãƒ«ãƒ€ãŒç„¡ã‘ã‚Œã°ä½œæˆ
 
 	ofstream resultfile;
 	string filename = "Result.txt";
@@ -35,79 +28,46 @@ int main() {
 
 	int gamecount = 0;
 	int episodecount = 0;
-	//ƒƒCƒ“ƒ‹[ƒv
+	//ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—
 	while (gamecount < MAXGAME) {
-		
-		//do {
-			p1 = initState(dist1(engine), dist1(engine));
-			enemy = initState(dist1(engine), dist1(engine));
-		//} while (p1.first == enemy.first && p1.second == enemy.second);
+		//int action;
+		//int b;
+		//cin >> action;
+		//cin >> b;
 
-		setPlayer(p1);
-		setEnemy(enemy);
+		//p1 = protCharactor(p1, action);
+		//p2 = protCharactor(p2, b);
+		//State p1state = searchRelationEnemy(p1, enemy);
+		//p1.locate_enemy_count = p1state.locate_enemy_count;
+
+		//episodecount = QlearningMethod(p1, p2, enemy,gamecount);
 
 		episodecount = SoloQlearningMethod(p1, enemy, gamecount);
 		resetmap();
 
-		//drawMap();
-		resultfile << gamecount << "," << episodecount << std::endl;
-
-		//•]‰¿‚ÆQƒe[ƒuƒ‹o—Í
-		if (gamecount == outputcount) {
-			outputQvalueTable(gamecount);
-			outputEvaluationQvalueTable(gamecount);
-			EvaluationFunction(gamecount);			
-			//ˆê–œ‚©‚çŒ…‚ªˆê‚Âã‚ª‚é‚½‚Ñ‚Éƒf[ƒ^‚ğo—Í‚µ‚Ü‚·D
-			outputcount = outputcount * 10;
+		while (p1.first == enemy.first && p1.second == enemy.second) {
+			p1 = initState(dist1(engine), dist1(engine));
+			enemy = initState(dist1(engine), dist1(engine));
+			//	p2 = { (int)dist1(engine), (int)dist1(engine) };
 		}
+		setPlayer(p1);
+		//setPlayer(p2);
+		setEnemy(enemy);
+
+		//drawMap();
+
+		resultfile << gamecount << "," << episodecount << std::endl;
 		gamecount++;
 	}
-	//Qval‚Ìo—Í
-	outputQvalueTable(gamecount);
-	outputEvaluationQvalueTable(gamecount);
-	EvaluationFunction(gamecount);
-	
+	//Qvalã®å‡ºåŠ›
+	outputQvalueTable();
+	resultfile.close();
+
+
 	return 0;
 }
 
-void EvaluationFunction(int evacount) {
-	//ƒtƒHƒ‹ƒ_ì‚é
-	checkExistenceOfFolder("Evaluation/"+to_string(evacount) );
-
-	random_device seed_gen;
-	mt19937 engine(seed_gen());
-	std::uniform_int_distribution<> dist1(0, mapsize);
-
-	//•]‰¿
-	int gamecount = 0;
-	int episodecount = 0;
-	State evalp1 = initState(dist1(engine), dist1(engine));
-	State evalenemy = initState(dist1(engine), dist1(engine));
-	ofstream evalresultfile;
-	string evalfilename = "Result.txt";
-	evalresultfile.open("Evaluation/"+ to_string(evacount) + "/" + evalfilename , std::ios::app);
-	while (gamecount < EVALUATIONCOUNT) {
-		//do {
-			evalp1 = initState(dist1(engine), dist1(engine));
-			evalenemy = initState(dist1(engine), dist1(engine));
-		//} while (evalp1.first == evalenemy.first && evalp1.second == evalenemy.second);
-
-		setPlayer(evalp1);
-		setEnemy(evalenemy);
-
-		episodecount = SoloQEvalationlearningMethod(evalp1, evalenemy, gamecount, evacount);
-		resetmap();
-
-		evalresultfile << gamecount << "," << episodecount << std::endl;
-		gamecount++;
-	}
-	evalresultfile.close();
-}
-
-
-
-
-//Map‚Ì‰Šú‰»
+//Mapã®åˆæœŸåŒ–
 void resetmap() {
 	for (int y = 0; y < mapsize; y++) {
 		for (int x = 0; x < mapsize; x++) {
@@ -125,7 +85,7 @@ State initState(int x, int y) {
 	return tmp;
 }
 
-//ƒ}ƒbƒv‚Ì•\¦
+//ãƒãƒƒãƒ—ã®è¡¨ç¤º
 void drawMap() {
 	for (int x = 0; x < mapsize; x++) {
 		for (int y = 0; y < mapsize; y++) {
@@ -149,7 +109,7 @@ void resetPlayer(State player) {
 	map[player.first][player.second] = 0;
 }
 
-//“G‚Ì—×‚ÉƒvƒŒƒCƒ„‚ª‚¢‚é‚©‚Ç‚¤‚©‚ğ’²‚×‚é.
+//æ•µã®éš£ã«ãƒ—ãƒ¬ã‚¤ãƒ¤ãŒã„ã‚‹ã‹ã©ã†ã‹ã‚’èª¿ã¹ã‚‹.
 bool checkNexttoEnemy(State player, State enemy) {
 	const int dx[] = { 0,1,0,-1,0 };
 	const int dy[] = { -1,0,1,0,0 };
@@ -163,7 +123,7 @@ bool checkNexttoEnemy(State player, State enemy) {
 	return false;
 }
 
-//“G‚ğˆÍ‚Ş‚±‚Æ‚ªo—ˆ‚Ä‚¢‚é‚©’²‚×‚é
+//æ•µã‚’å›²ã‚€ã“ã¨ãŒå‡ºæ¥ã¦ã„ã‚‹ã‹èª¿ã¹ã‚‹
 bool checkSurroundbyPlayer(State player1, State player2, State enemy) {
 
 	bool check1 = checkNexttoEnemy(player1, enemy);
@@ -175,7 +135,7 @@ bool checkSurroundbyPlayer(State player1, State player2, State enemy) {
 	return false;
 }
 
-//ƒLƒƒƒ‰ƒNƒ^[‚ğæ‚èˆÍ‚Ş‚±‚Æ‚ªo—ˆ‚é‚©‚Ç‚¤‚©‚ÌŠm”F—pƒƒ\ƒbƒh
+//ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚’å–ã‚Šå›²ã‚€ã“ã¨ãŒå‡ºæ¥ã‚‹ã‹ã©ã†ã‹ã®ç¢ºèªç”¨ãƒ¡ã‚½ãƒƒãƒ‰
 State checkCharacter(State character, int action) {
 	const int dx[] = { 0,1,0,-1,0 };
 	const int dy[] = { -1,0,1,0,0 };
@@ -205,7 +165,7 @@ State checkCharacter(State character, int action) {
 	return character;
 }
 
-//character‚ÌˆÚ“®,map‚É•\¦‚·‚é‚½‚ß‚Ì‘‚«‚İ‚ğs‚¤‚Æ‚±‚ë.
+//characterã®ç§»å‹•,mapã«è¡¨ç¤ºã™ã‚‹ãŸã‚ã®æ›¸ãè¾¼ã¿ã‚’è¡Œã†ã¨ã“ã‚.
 State protCharactor(State player, int action) {
 	resetPlayer(player);
 	player = moveCharacter(player, action);
@@ -213,7 +173,7 @@ State protCharactor(State player, int action) {
 	return player;
 }
 
-//“G‚ÌƒLƒƒƒ‰ƒNƒ^[‚ğˆÚ“®‚³‚¹‚é
+//æ•µã®ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚’ç§»å‹•ã•ã›ã‚‹
 State protEnemyCharactor(State player, int action) {
 	resetPlayer(player);
 	player = moveCharacter(player, action);
@@ -221,7 +181,7 @@ State protEnemyCharactor(State player, int action) {
 	return player;
 }
 
-//ƒLƒƒƒ‰ƒNƒ^[‚ğˆÚ“®‚³‚¹,ˆÚ“®‚·‚é‚±‚Æ‚ªo—ˆ‚ê‚Î‚»‚ÌˆÚ“®æ‚ÌÀ•W‚ğ•Ô‚·
+//ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚’ç§»å‹•ã•ã›,ç§»å‹•ã™ã‚‹ã“ã¨ãŒå‡ºæ¥ã‚Œã°ãã®ç§»å‹•å…ˆã®åº§æ¨™ã‚’è¿”ã™
 State moveCharacter(State character, int action) {
 	const int dx[] = { 0,1,0,-1,0 };
 	const int dy[] = { -1,0,1,0,0 };
@@ -249,7 +209,7 @@ State moveCharacter(State character, int action) {
 		y = mapsize - 1;
 	}
 
-	//ˆÚ“®•s‰Â”\‚Èê‡–ß‚é.
+	//ç§»å‹•ä¸å¯èƒ½ãªå ´åˆæˆ»ã‚‹.
 	if (map[x][y] != 0) {
 		return character;
 	}
@@ -263,12 +223,12 @@ State moveCharacter(State character, int action) {
 
 /*********************************************************************
 *
-*QŠwK—p‚Ìƒƒ\ƒbƒhŒR
+*Qå­¦ç¿’ç”¨ã®ãƒ¡ã‚½ãƒƒãƒ‰è»
 *
 **********************************************************************/
-//Qƒe[ƒuƒ‹‚Ì‰Šú‰»
+//Qãƒ†ãƒ¼ãƒ–ãƒ«ã®åˆæœŸåŒ–
 void initializeQvalue() {
-	//Q’l‚ğ0.0‚Å‰Šú‰»
+	//Qå€¤ã‚’0.0ã§åˆæœŸåŒ–
 	for (int i = 0; i < qSize; i++) {
 		for (int j = 0; j < qSize; j++) {
 			for (int m = 0; m < qSize; m++) {
@@ -281,10 +241,10 @@ void initializeQvalue() {
 	}
 }
 
-//‚»‚Ì’n“_‚É‰½‰ñ“’B‚µ‚½‚Ì‚©‰ñ”‚ğ•\¦‚·‚é.
-//‰Šú‰»‚µ‚Ä‚é‚Æ‚±‚ë
+//ãã®åœ°ç‚¹ã«ä½•å›åˆ°é”ã—ãŸã®ã‹å›æ•°ã‚’è¡¨ç¤ºã™ã‚‹.
+//åˆæœŸåŒ–ã—ã¦ã‚‹ã¨ã“ã‚
 //void initializeMoveData() {
-//	//Q’l‚ğ0.0‚Å‰Šú‰»
+//	//Qå€¤ã‚’0.0ã§åˆæœŸåŒ–
 //	for (int i = 0; i < mapsize; i++) {
 //		for (int j = 0; j < mapsize; j++) {
 //				movedata1[i][j] = 0;
@@ -294,17 +254,15 @@ void initializeQvalue() {
 //	}
 
 
-//Q’l‚Ìƒe[ƒuƒ‹‚ğƒtƒ@ƒCƒ‹‚Éo—Í‚·‚é
-void outputQvalueTable(int evacount) {
-
+//Qå€¤ã®ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«å‡ºåŠ›ã™ã‚‹
+void outputQvalueTable() {
 	ofstream outputQvaldata1;
 	string filename = ".csv";
 
-	checkExistenceOfFolder("Qval/" + to_string(evacount));
-	outputQvaldata1.open("Qval/" + to_string(evacount) + "/Qdata" +  filename, std::ios::app);
+	outputQvaldata1.open("Qval/Qdata" + filename, std::ios::app);
 	const int dx[] = { 0,1,0,-1,0 };
 	const int dy[] = { -1,0,1,0,0 };
-	//Q’l‚ğ0.0‚Å‰Šú‰»
+	//Qå€¤ã‚’0.0ã§åˆæœŸåŒ–
 	for (int m = 0; m < qSize; m++) {
 		for (int i = 0; i < qSize; i++) {
 
@@ -322,27 +280,6 @@ void outputQvalueTable(int evacount) {
 	}
 }
 
-//Q’l‚Ìƒe[ƒuƒ‹‚ğƒtƒ@ƒCƒ‹‚Éo—Í‚·‚é
-void outputEvaluationQvalueTable(int evacount) {
-	ofstream outputQvaldata1;
-	string filename = "EvalQdata.csv";
-
-	checkExistenceOfFolder("Qval/" + to_string(evacount));
-	outputQvaldata1.open("Qval/" + to_string(evacount) + "/Qdata" + filename, std::ios::app);
-	const int dx[] = { 0,1,0,-1,0 };
-	const int dy[] = { -1,0,1,0,0 };
-	//Q’l‚ğ0.0‚Å‰Šú‰»
-	for (int m = 0; m < qSize; m++) {
-		for (int i = 0; i < qSize; i++) {
-			for (int j = 0; j < qSize; j++) {
-				for (int action = 0; action < qSize; action++) {
-					outputQvaldata1 << p1Qvalue[i][j][m][action] << ",";
-				}		outputQvaldata1 << endl; 
-			}outputQvaldata1 << endl;
-		}
-	}
-}
-
 //void outputDoublePlayQvalueTable() {
 //	ofstream outputQvaldata1;
 //	ofstream outputQvaldata2;
@@ -354,7 +291,7 @@ void outputEvaluationQvalueTable(int evacount) {
 //
 //	const int dx[] = { 0,1,0,-1,0 };
 //	const int dy[] = { -1,0,1,0,0 };
-//	//Q’l‚ğ0.0‚Å‰Šú‰»
+//	//Qå€¤ã‚’0.0ã§åˆæœŸåŒ–
 //	for (int i = 0; i < qSize; i++) {
 //		for (int j = 0; j < qSize; j++) {
 //			outputQvaldata1 << "," << p1Qvalue[i][j][2] << "," <<endl;
@@ -370,11 +307,11 @@ void outputEvaluationQvalueTable(int evacount) {
 //}
 
 
-//1ƒGƒsƒ\[ƒh‚ğÄŒ»‚·‚é.
+//1ã‚¨ãƒ”ã‚½ãƒ¼ãƒ‰ã‚’å†ç¾ã™ã‚‹.
 /*
-(1)ƒG[ƒWƒFƒ“ƒg‚ÍŠÂ‹«‚Ìó‘Ôs‚ğŠÏ‘ª‚·‚é
-(2)”CˆÓ‚Ìs“®‘I‘ğ‚ğ‚µCs“®a‚ğÀs‚·‚é
-(3)ŠÂ‹«‚©‚ç•ñV‚ğó‚¯æ‚é
+(1)ã‚¨ãƒ¼ã‚¸ã‚§ãƒ³ãƒˆã¯ç’°å¢ƒã®çŠ¶æ…‹sã‚’è¦³æ¸¬ã™ã‚‹
+(2)ä»»æ„ã®è¡Œå‹•é¸æŠã‚’ã—ï¼Œè¡Œå‹•aã‚’å®Ÿè¡Œã™ã‚‹
+(3)ç’°å¢ƒã‹ã‚‰å ±é…¬ã‚’å—ã‘å–ã‚‹
 */
 //int QlearningMethod(State p1, State p2, State enemy,int gamecount) {
 //	int episodecount = 0;
@@ -399,30 +336,30 @@ void outputEvaluationQvalueTable(int evacount) {
 //	double AttenuationAlpha = (double)alpha *AAlpha;
 //
 //	while (episodecount < EPISODECOUNT) {
-//		//‹ŠE“à‚Å‚Ìó‘Ô‚Ì”cˆ¬
-//		//“G‚ÌˆÊ’u‚ğ©•ª‚Æ‚Ì‘Š‘ÎˆÊ’u‚Å”F¯
+//		//è¦–ç•Œå†…ã§ã®çŠ¶æ…‹ã®æŠŠæ¡
+//		//æ•µã®ä½ç½®ã‚’è‡ªåˆ†ã¨ã®ç›¸å¯¾ä½ç½®ã§èªè­˜
 //		State p1state = searchRelationEnemy(p1, enemy);
 //		State p2state = searchRelationEnemy(p2, enemy);
 //
-//		//Q’l‚ÉŠî‚Ã‚­s“®‚Ì‘I‘ğ
+//		//Qå€¤ã«åŸºã¥ãè¡Œå‹•ã®é¸æŠ
 //		int p1action = chooseAnAction(p1state,p1,1);
 //		int p2action = chooseAnAction(p2state,p2,2);
 //
-//		//s“®‚ÌÀ{
+//		//è¡Œå‹•ã®å®Ÿæ–½
 //		p1 = protCharactor(p1, p1action);
 //		movedata1[p1.first][p1.second]++;
 //		p2 = protCharactor(p2, p2action);
 //		movedata2[p2.first][p2.second]++;
 //
-//		//s“®‚ğÀ{‚µ‚½Œã‚Ì‘Š‘ÎˆÊ’u‚ğ”F¯
+//		//è¡Œå‹•ã‚’å®Ÿæ–½ã—ãŸå¾Œã®ç›¸å¯¾ä½ç½®ã‚’èªè­˜
 //		State p1afterstate = searchRelationEnemy(p1, enemy);
 //		State p2afterstate = searchRelationEnemy(p2, enemy);
 //
-//		//•ñV‚Ì•t—^
+//		//å ±é…¬ã®ä»˜ä¸
 //		calcReward(p1state, p1afterstate, p1action, p1, p2, enemy, 1, AttenuationAlpha);
 //		calcReward(p2state, p2afterstate, p2action, p1, p2, enemy, 2, AttenuationAlpha);
 //
-//		//ƒtƒ@ƒCƒ‹o—Í
+//		//ãƒ•ã‚¡ã‚¤ãƒ«å‡ºåŠ›
 //		if (MAXGAME -50 < gamecount) {
 //			ofstream outputmovedata;
 //			outputmovedata.open(".\\" + foldaname + "\\moveData\\" + filename, std::ios::app);
@@ -430,17 +367,17 @@ void outputEvaluationQvalueTable(int evacount) {
 //		}
 //		//drawMap();
 //
-//		//ƒQ[ƒ€‚ÌC—¹”»’è
+//		//ã‚²ãƒ¼ãƒ ã®ä¿®äº†åˆ¤å®š
 //		episodecount++;
-//		if (checkSurroundbyPlayer(p1, p2, enemy) == true) {//“ñl—p
+//		if (checkSurroundbyPlayer(p1, p2, enemy) == true) {//äºŒäººç”¨
 //		break;
 //		}
 //	}
-//	//std::cout << "GAME:" <<gamecount << " "<< episodecount << " I—¹I" << endl;
+//	//std::cout << "GAME:" <<gamecount << " "<< episodecount << " çµ‚äº†ï¼" << endl;
 //	
 //	outputDoublePlayQvalueTable();
 //
-//	//MoveCount‚Ìo—Í
+//	//MoveCountã®å‡ºåŠ›
 //	//for (int i = 0; i < mapsize; i++) {
 //	//	for (int j = 0; j < mapsize; j++) {
 //	//		outputmovecount1 << movedata1[i][j] << ",";
@@ -457,12 +394,8 @@ void outputEvaluationQvalueTable(int evacount) {
 
 int SoloQlearningMethod(State p1, State enemy, int gamecount)
 {
-	random_device seed_gen;
-	mt19937 engine(seed_gen());
-	std::uniform_int_distribution<> dist1(0, mapsize);
-	std::uniform_int_distribution<> action(0, ACTION);
-
 	int episodecount = 0;
+
 	ofstream outputmovedata;
 	stringstream ss;
 	ss << gamecount;
@@ -477,41 +410,41 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 	}
 
 	while (episodecount < EPISODECOUNT) {
-		//‹ŠE“à‚Å‚Ìó‘Ô‚Ì”cˆ¬
-		//“G‚ÌˆÊ’u‚ğ©•ª‚Æ‚Ì‘Š‘ÎˆÊ’u‚Å”F¯
+		//è¦–ç•Œå†…ã§ã®çŠ¶æ…‹ã®æŠŠæ¡
+		//æ•µã®ä½ç½®ã‚’è‡ªåˆ†ã¨ã®ç›¸å¯¾ä½ç½®ã§èªè­˜
 		State p1state = searchRelationEnemy(p1, enemy);
 
-		//‰½ƒ^[ƒ“Œ©‚Ä‚¢‚È‚¢‚©‚Æ‚¢‚¤î•ñ‚ğ”½‰f‚³‚¹‚éD
+		//ä½•ã‚¿ãƒ¼ãƒ³è¦‹ã¦ã„ãªã„ã‹ã¨ã„ã†æƒ…å ±ã‚’åæ˜ ã•ã›ã‚‹ï¼
 		p1.locate_enemy_count = p1state.locate_enemy_count;
 
-		//Q’l‚ÉŠî‚Ã‚­s“®‚Ì‘I‘ğ
+		//Qå€¤ã«åŸºã¥ãè¡Œå‹•ã®é¸æŠ
 		int p1action = chooseAnAction(p1state, 1);
 
-		//ƒ‰ƒ“ƒ_ƒ€‚ÉƒLƒƒƒ‰ƒNƒ^[‚ğ“®‚©‚·
+		//ãƒ©ãƒ³ãƒ€ãƒ ã«ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚’å‹•ã‹ã™
 		if (checkmovenemy == true) {
 			enemy = protEnemyCharactor(enemy, action(engine));
 		}
 
-		//s“®‚ÌÀ{
+		//è¡Œå‹•ã®å®Ÿæ–½
 		p1 = protCharactor(p1, p1action);
 		//movedata1[p1.first][p1.second]++;
 
-		//s“®‚ğÀ{‚µ‚½Œã‚Ì‘Š‘ÎˆÊ’u‚ğ”F¯
+		//è¡Œå‹•ã‚’å®Ÿæ–½ã—ãŸå¾Œã®ç›¸å¯¾ä½ç½®ã‚’èªè­˜
 		State p1afterstate = searchRelationEnemy(p1, enemy);
 		if (blindcount == false) {
 			p1state.locate_enemy_count = 0;
 			p1.locate_enemy_count = 0;
 			p1afterstate.locate_enemy_count = 0;
 		}
-		//•ñV‚Ì•t—^
+		//å ±é…¬ã®ä»˜ä¸
 		calcSoloReward(p1state, p1afterstate, p1action, p1, enemy, AAlpha);
 
-		//ƒ‰ƒXƒg50ƒQ[ƒ€‚Ìƒtƒ@ƒCƒ‹‚¾‚¯o—Í
+		//ãƒ©ã‚¹ãƒˆ50ã‚²ãƒ¼ãƒ ã®ãƒ•ã‚¡ã‚¤ãƒ«ã ã‘å‡ºåŠ›
 		outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << enemy.first << "," << enemy.second << std::endl;
 
 
 		//drawMap();
-		//ƒQ[ƒ€‚ÌC—¹”»’è
+		//ã‚²ãƒ¼ãƒ ã®ä¿®äº†åˆ¤å®š
 		episodecount++;
 		if (checkNexttoEnemy(p1, enemy) == true) {
 			break;
@@ -520,62 +453,8 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 	return episodecount;
 }
 
-int SoloQEvalationlearningMethod(State p1, State enemy, int gamecount,int evacount)
-{
-	random_device seed_gen;
-	mt19937 engine(seed_gen());
-	std::uniform_int_distribution<> action(0, ACTION);
-
-	int episodecount = 0;
-
-	ofstream outputmovedata;
-	stringstream ss;
-	ss << gamecount;
-	string movedatafilename = ss.str() + ".csv";
-	checkExistenceOfFolder("Evaluation/" + to_string(evacount));
-	outputmovedata.open("Evaluation/" + to_string(evacount) + "/" + movedatafilename, std::ios::app);
-	while (episodecount < EPISODECOUNT) {
-		//‹ŠE“à‚Å‚Ìó‘Ô‚Ì”cˆ¬
-		//“G‚ÌˆÊ’u‚ğ©•ª‚Æ‚Ì‘Š‘ÎˆÊ’u‚Å”F¯
-		State p1state = searchRelationEnemy(p1, enemy);
-
-		//‰½ƒ^[ƒ“Œ©‚Ä‚¢‚È‚¢‚©‚Æ‚¢‚¤î•ñ‚ğ”½‰f‚³‚¹‚éD
-		p1.locate_enemy_count = p1state.locate_enemy_count;
-
-		//Q’l‚ÉŠî‚Ã‚­s“®‚Ì‘I‘ğ
-		int p1action = chooseAnEvaluationAction(p1state, 1);
-
-		//ƒ‰ƒ“ƒ_ƒ€‚ÉƒLƒƒƒ‰ƒNƒ^[‚ğ“®‚©‚·
-		if (checkmovenemy == true) {
-			enemy = protEnemyCharactor(enemy, action(engine));
-		}
-
-		//s“®‚ÌÀ{
-		p1 = protCharactor(p1, p1action);
-
-		//s“®‚ğÀ{‚µ‚½Œã‚Ì‘Š‘ÎˆÊ’u‚ğ”F¯
-		State p1afterstate = searchRelationEnemy(p1, enemy);
-		if (blindcount == false) {
-			p1state.locate_enemy_count = 0;
-			p1.locate_enemy_count = 0;
-			p1afterstate.locate_enemy_count = 0;
-		}
-
-		//ƒ‰ƒXƒg50ƒQ[ƒ€‚Ìƒtƒ@ƒCƒ‹‚¾‚¯o—Í
-		outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << enemy.first << "," << enemy.second << std::endl;
-		//drawMap();
-		//ƒQ[ƒ€‚ÌC—¹”»’è
-		episodecount++;
-		if (checkNexttoEnemy(p1, enemy) == true) {
-			break;
-		}
-	}
-	return episodecount;
-}
-
-
-//“G‚Æ©‹@‚Ì‹–ì“à‚Å‚Ì‘Š‘Î‹——£‚ğZo‚·‚é.
-//‹–ìŠO‚Ìê‡‹ŠE‚Ì’†‰›‚Æ‚È‚é“_©‹@‚ğÀ•Wƒf[ƒ^‚Æ‚µ‚Ä•Ô‚·.
+//æ•µã¨è‡ªæ©Ÿã®è¦–é‡å†…ã§ã®ç›¸å¯¾è·é›¢ã‚’ç®—å‡ºã™ã‚‹.
+//è¦–é‡å¤–ã®å ´åˆè¦–ç•Œã®ä¸­å¤®ã¨ãªã‚‹ç‚¹ï¼è‡ªæ©Ÿã‚’åº§æ¨™ãƒ‡ãƒ¼ã‚¿ã¨ã—ã¦è¿”ã™.
 State searchRelationEnemy(State playerpositions, State enemypositons) {
 	//std::cout << "searchRelationEnemy" << std::endl;
 	State ep;
@@ -585,7 +464,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
 	ep.second = enemypositons.second - playerpositions.second;
 	ep.locate_enemy_count = playerpositions.locate_enemy_count;
 
-	//©‹@‚ª“G‚æ‚è¶
+	//è‡ªæ©ŸãŒæ•µã‚ˆã‚Šå·¦
 	if (playerpositions.first < enemypositons.first) {
 		tmp.first = (enemypositons.first - mapsize) - playerpositions.first;
 	}
@@ -593,7 +472,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
 		tmp.first = (mapsize - playerpositions.first) + enemypositons.first;
 	}
 
-	//©‹@‚ª“G‚æ‚è‰º
+	//è‡ªæ©ŸãŒæ•µã‚ˆã‚Šä¸‹
 	if (playerpositions.second < enemypositons.second) {
 		tmp.second = (enemypositons.second - mapsize) - playerpositions.second;
 	}
@@ -601,7 +480,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
 		tmp.second = (mapsize - playerpositions.second) + enemypositons.second;
 	}
 
-	//â‘Î’l‚Å‹——£‚ğŒvZ‚·‚é
+	//çµ¶å¯¾å€¤ã§è·é›¢ã‚’è¨ˆç®—ã™ã‚‹
 	if (abs(tmp.first) < abs(ep.first)) {
 		ep.first = tmp.first;
 	}
@@ -610,11 +489,11 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
 		ep.second = tmp.second;
 	}
 
-	//‹–ìŠO‚Ì‚ÌÀ•W‚Å‚Í‘S‚ÄŒÅ’è.
+	//è¦–é‡å¤–ã®æ™‚ã®åº§æ¨™ã§ã¯å…¨ã¦å›ºå®š.
 	if (abs(ep.first) > eyesight) {
 		ep.first = eyesight;
 		ep.second = eyesight;
-		//‹–ìŠO‚Ì‚½‚ßŒ©‚¦‚Ä‚È‚¢ƒJƒEƒ“ƒg‚ğ’Ç‰Á
+		//è¦–é‡å¤–ã®ãŸã‚è¦‹ãˆã¦ãªã„ã‚«ã‚¦ãƒ³ãƒˆã‚’è¿½åŠ 
 		if (ep.locate_enemy_count < qSize - 1) {
 			ep.locate_enemy_count++;
 		}
@@ -629,7 +508,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
 		return ep;
 	}
 
-	//‘Š‘ÎˆÊ’u‚É‹ŠE•ª‚ğ‘«‚·‚±‚Æ‚ÅQ’l‚ğŠi”[‚·‚éˆÊ’u‚ğ’²®‚·‚é.
+	//ç›¸å¯¾ä½ç½®ã«è¦–ç•Œåˆ†ã‚’è¶³ã™ã“ã¨ã§Qå€¤ã‚’æ ¼ç´ã™ã‚‹ä½ç½®ã‚’èª¿æ•´ã™ã‚‹.
 	ep.first = ep.first + eyesight;
 	ep.second = ep.second + eyesight;
 
@@ -639,36 +518,25 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
 }
 
 
-//Q’l‚É‚æ‚Á‚ÄŒˆ’è•t‚¯‚³‚ê‚és“®‚ğ‘I‘ğ‚·‚é.
-//ƒÃ-ƒOƒŠ[ƒfƒB–@
+//Qå€¤ã«ã‚ˆã£ã¦æ±ºå®šä»˜ã‘ã•ã‚Œã‚‹è¡Œå‹•ã‚’é¸æŠã™ã‚‹.
+//Îµ-ã‚°ãƒªãƒ¼ãƒ‡ã‚£æ³•
 int chooseAnAction(State playerstate, int playernum) {
-	random_device seed_gen;
-	mt19937 engine(seed_gen());
-	std::uniform_int_distribution<> makerandom(0, 100);
 
 	int randvalue = makerandom(engine);
-	//s“®‚ğ‘I‘ğ
+	//è¡Œå‹•ã‚’é¸æŠ
 	int action;
 	if (randvalue < EPSILON) {
-		//ƒ‰ƒ“ƒ_ƒ€‘I‘ğ
+		//ãƒ©ãƒ³ãƒ€ãƒ é¸æŠ
 		action = randvalue % 5;
 	}
 	else {
-		//’Êí‚ÍAQ’l‚ğÅ‘å‰»‚·‚és“®‚ğ‘I‘ğ
+		//é€šå¸¸ã¯ã€Qå€¤ã‚’æœ€å¤§åŒ–ã™ã‚‹è¡Œå‹•ã‚’é¸æŠ
 		action = getMaxQAction(playerstate, playernum);
 	}
 	return action;
 }
 
-//•]‰¿—pŠÖ”
-int chooseAnEvaluationAction(State playerstate, int playernum) {
-		//’Êí‚ÍAQ’l‚ğÅ‘å‰»‚·‚és“®‚ğ‘I‘ğ
-	int	action = getMaxQAction(playerstate, playernum);
-	
-	return action;
-}
-
-//ó‘Ôstate‚É‚¨‚¢‚ÄAÅ‘å‚ÌQ’l‚Æ‚È‚és“®‚ğ•Ô‚·
+//çŠ¶æ…‹stateã«ãŠã„ã¦ã€æœ€å¤§ã®Qå€¤ã¨ãªã‚‹è¡Œå‹•ã‚’è¿”ã™
 int getMaxQAction(State state, int playernum) {
 	double maxQ = -1.0;
 	int action = 4;
@@ -676,7 +544,7 @@ int getMaxQAction(State state, int playernum) {
 		for (int i = 0; i < ACTION; i++) {
 			double q = p1Qvalue[state.first][state.second][state.locate_enemy_count][i];
 
-			//Å‘åQ’l‚Æ‚È‚és“®‚ğ‹L‰¯
+			//æœ€å¤§Qå€¤ã¨ãªã‚‹è¡Œå‹•ã‚’è¨˜æ†¶
 			if (q > maxQ) {
 				action = i;
 				maxQ = q;
@@ -696,7 +564,7 @@ int getMaxQAction(State state, int playernum) {
 		for (int i = 0; i < ACTION; i++) {
 			double q = p2Qvalue[state.first][state.second][state.locate_enemy_count][i];
 
-			//Å‘åQ’l‚Æ‚È‚és“®‚ğ‹L‰¯
+			//æœ€å¤§Qå€¤ã¨ãªã‚‹è¡Œå‹•ã‚’è¨˜æ†¶
 			if (q > maxQ) {
 				action = i;
 				maxQ = q;
@@ -715,14 +583,14 @@ int getMaxQAction(State state, int playernum) {
 }
 
 
-//•ñVŠÖ”
+//å ±é…¬é–¢æ•°
 bool calcSoloReward(State state, State afterstate, int action, State player, State enemy, long double AttenuationAlpha) {
 	double maxQ = 0;
-	//â‘ÎÀ•W‚ÅˆÚ“®‚µ‚½ó‘Ô‚ğæ“¾‚·‚é
-	//std::Statestate =  moveCharacter(player, action);	//a‚ğ‚µ‚½Œã‚Ìó‘Ô
-	//std::Stateafter = searchRelationEnemy(player, enemy); //‘Š‘ÎÀ•W‚É•ÏŠ·
-	int nextaction = getMaxQAction(afterstate, 1);						//after‚Å‚ÌÅ‘åQ’l‚ğo‚·s“®
-	maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.locate_enemy_count][nextaction];			//after‚Å‚ÌÅ‘åQ’l
+	//çµ¶å¯¾åº§æ¨™ã§ç§»å‹•ã—ãŸçŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+	//std::Statestate =  moveCharacter(player, action);	//aã‚’ã—ãŸå¾Œã®çŠ¶æ…‹
+	//std::Stateafter = searchRelationEnemy(player, enemy); //ç›¸å¯¾åº§æ¨™ã«å¤‰æ›
+	int nextaction = getMaxQAction(afterstate, 1);						//afterã§ã®æœ€å¤§Qå€¤ã‚’å‡ºã™è¡Œå‹•
+	maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.locate_enemy_count][nextaction];			//afterã§ã®æœ€å¤§Qå€¤
 	if (checkNexttoEnemy(player, enemy) == true) {
 		p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + gamma * maxQ);
 		return true;
