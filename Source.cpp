@@ -61,7 +61,6 @@ int main() {
 	EvaluationFunction(gamecount);
 	resultfile.close();
 
-
 	return 0;
 }
 
@@ -72,7 +71,6 @@ void EvaluationFunction(int evacount) {
 	mt19937 engine(seed_gen());
 	std::uniform_int_distribution<> dist1(0, mapsize);
 
-	//�]��
 	int gamecount = 0;
 	int episodecount = 0;
 	State evalp1 = initState(dist1(engine), dist1(engine));
