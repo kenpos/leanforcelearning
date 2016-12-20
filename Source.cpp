@@ -17,11 +17,9 @@ int main() {
 	checkExistenceOfFolder("Result/");
 
 	State p1 = initState(dist1(engine), dist1(engine));
-	//State p2 =  initState(dist1(engine), (int)dist1(engine));
 	State enemy = initState(dist1(engine), dist1(engine));
 
 	setPlayer(p1);
-	//setPlayer(p2);
 	setEnemy(enemy);
 
 	initializeQvalue();
@@ -35,38 +33,22 @@ int main() {
 	int episodecount = 0;
 	//メインループ
 	while (gamecount < MAXGAME) {
-		//int action;
-		//int b;
-		//cin >> action;
-		//cin >> b;
-
-		//p1 = protCharactor(p1, action);
-		//p2 = protCharactor(p2, b);
-		//State p1state = searchRelationEnemy(p1, enemy);
-		//p1.locate_enemy_count = p1state.locate_enemy_count;
-
-		//episodecount = QlearningMethod(p1, p2, enemy,gamecount);
-
 		episodecount = SoloQlearningMethod(p1, enemy, gamecount);
 		resetmap();
 
 		while (p1.first == enemy.first && p1.second == enemy.second) {
 			p1 = initState(dist1(engine), dist1(engine));
 			enemy = initState(dist1(engine), dist1(engine));
-			//	p2 = { (int)dist1(engine), (int)dist1(engine) };
 		}
 		setPlayer(p1);
-		//setPlayer(p2);
 		setEnemy(enemy);
-
-		//drawMap();
 
 		resultfile << gamecount << "," << episodecount << std::endl;
 
 		//評価用
 		if (gamecount == outputcount) {
 			outputQvalueTable(gamecount);
-			//outputEvaluationQvalueTable(gamecount);
+			outputEvaluationQvalueTable(gamecount);
 			EvaluationFunction(gamecount);
 			//桁が一つ上がる度に記録する
 			outputcount = outputcount * 10;
@@ -86,7 +68,6 @@ int main() {
 
 void EvaluationFunction(int evacount) {
 	checkExistenceOfFolder("Evaluation/" + to_string(evacount));
-
 	random_device seed_gen;
 	mt19937 engine(seed_gen());
 	std::uniform_int_distribution<> dist1(0, mapsize);
@@ -108,7 +89,7 @@ void EvaluationFunction(int evacount) {
 		setPlayer(evalp1);
 		setEnemy(evalenemy);
 
-		episodecount = SoloQlearningEvaluationMethod(evalp1, evalenemy, gamecount);
+		episodecount = SoloQlearningEvaluationMethod(evalp1, evalenemy, gamecount,evacount);
 		resetmap();
 
 		evalresultfile << gamecount << "," << episodecount << std::endl;
@@ -463,21 +444,12 @@ void outputQvalueTable(int gamecount) {
 //}
 
 //評価用
-int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount)
+int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evacount)
 {
-
 	int episodecount = 0;
-
-	int c = 100000 + gamecount;
-	double AttenuationAlpha = (double)100000 / (double)c;
-	double AAlpha = (double)alpha *AttenuationAlpha;
-
 	ofstream outputmovedata;
-	stringstream ss;
-	ss << gamecount;
-	string movedatafilename = ss.str() + ".csv";
-	checkExistenceOfFolder("Evaluation/" + to_string(gamecount));
-	outputmovedata.open("Evaluation/" + to_string(gamecount) + "/" + movedatafilename, std::ios::app);
+	string movedatafilename = to_string(gamecount) + ".csv";
+	outputmovedata.open("Evaluation/" + to_string(evacount) + "/" + movedatafilename, std::ios::app);
 
 	while (episodecount < EPISODECOUNT) {
 		//視界内での状態の把握
@@ -496,6 +468,7 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount)
 		}
 		//行動の実施
 		p1 = protCharactor(p1, p1action);
+
 		//行動を実施した後の相対位置を認識
 		State p1afterstate = searchRelationEnemy(p1, enemy);
 		if (blindcount == false) {
