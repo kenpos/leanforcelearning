@@ -1,58 +1,56 @@
-#pragma once
 #include <iostream>
 #include <utility>
-#include <direct.h>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <random>
 #include <memory.h>
 
-//ó‘Ô‹óŠÔ
+template < typename T > std::string to_string( const T& n )
+{
+		std::ostringstream stm ;
+		stm << n ;
+		return stm.str() ;
+}
+
+//ï¿½ï¿½ï¿½Ô‹ï¿½ï¿½ï¿½
 struct State {
 	int first;
 	int second;
 	int locate_enemy_count;
 };
 
-const int eyesight = 4;//‹ŠE‚ÌL‚³
-const int qSize = eyesight * 2 + 1;//Q’l‚Ì‘å‚«‚³
+const int eyesight = 4;//ï¿½ï¿½ï¿½Eï¿½ÌLï¿½ï¿½
+const int qSize = eyesight * 2 + 1;//Qï¿½lï¿½Ì‘å‚«ï¿½ï¿½
 const int mapsize = 9;
 const int ACTION = 5;
-const bool blindcount = true;//‰½ƒ^[ƒ““G‚ğŒ©‚Ä‚¢‚È‚¢‚©@‚Æ‚¢‚¤ó‘Ô”‚ğ”½‰f‚³‚¹‚é‚©”Û‚©
+const bool blindcount = true;//ï¿½ï¿½ï¿½^ï¿½[ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½@ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôï¿½ï¿½ğ”½‰fï¿½ï¿½ï¿½ï¿½ï¿½é‚©ï¿½Û‚ï¿½
 const bool checkmovenemy = false;
-const int MAXGAME = 200000000;//‰ñ
-const int EPISODECOUNT = 500; //1ƒGƒsƒ\[ƒh•Ó‚è‚Ç‚Ì’ö“x
+const int MAXGAME = 200000000;//ï¿½ï¿½
+const int EPISODECOUNT = 500; //1ï¿½Gï¿½sï¿½\ï¿½[ï¿½hï¿½Ó‚ï¿½ï¿½Ç‚Ì’ï¿½ï¿½x
 
-const int EVALUATIONCOUNT = 10000;//‰ñ@ˆê‰ñ‚Ì•]‰¿ƒGƒsƒ\[ƒh”
+const int EVALUATIONCOUNT = 10000;//ï¿½ï¿½ï¿½@ï¿½ï¿½ï¿½ï¿½ï¿½Ì•]ï¿½ï¿½ï¿½Gï¿½sï¿½\ï¿½[ï¿½hï¿½ï¿½
 
-int outputcount = 100000;
+
 
 const int EPSILON = 40;
 
-const double gamma = 0.8;
+const double ganna = 0.8;
 const double alpha = 0.1;
 const double faild = 0;
 const double rewards = 100;
 const double subrewards = 0;
 
-double p1Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
-double p2Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
-
-int movedata1[mapsize][mapsize] = { 0 };
-int movedata2[mapsize][mapsize] = { 0 };
-
-unsigned int map[mapsize][mapsize] = { 0 };
-const std::string foldaname = "ganna" + std::to_string(gamma)
-+ "alpha" + std::to_string(alpha)
-+ "rewards" + std::to_string(rewards)
-+ "eysight" + std::to_string(eyesight)
-+ "mapsize" + std::to_string(mapsize)
-+ "MAXGAME" + std::to_string(MAXGAME)
-+ "EPISODECOUNT" + std::to_string(EPISODECOUNT)
-+ "blindcount" + std::to_string(blindcount)
-+ "checkmovenemy" + std::to_string(checkmovenemy)
-+ "EPSILON" + std::to_string(EPSILON);
+const std::string foldaname = "ganna" + to_string(gamma)
++ "alpha" +   to_string(alpha)
++ "rewards" + to_string(rewards)
++ "eysight" + to_string(eyesight)
++ "mapsize" + to_string(mapsize)
++ "MAXGAME" + to_string(MAXGAME)
++ "EPISODECOUNT" + to_string(EPISODECOUNT)
++ "blindcount" + to_string(blindcount)
++ "checkmovenemy" + to_string(checkmovenemy)
++ "EPSILON" + to_string(EPSILON);
 
 
 //static bool checkExistenceOfFolder(const std::string folder_name);
@@ -79,12 +77,12 @@ int chooseAnEvaluationAction(State playerstate, int playernum);
 void EvaluationFunction(int evacount);
 bool calcReward(State p1state, State p1afterstate, State p2state, State p2afterstate, int action, int action2, State p1, State p2, State enemy, long double AttenuationAlpha);
 
-//ƒtƒ@ƒCƒ‹o—ÍŠÖŒW
-static bool checkExistenceOfFolder(const std::string folder_name) {
-	if (_mkdir(folder_name.c_str()) == 0) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
+//ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½oï¿½ÍŠÖŒW
+//static bool checkExistenceOfFolder(const std::string folder_name) {
+//	if (_mkdir(folder_name.c_str()) == 0) {
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+//}

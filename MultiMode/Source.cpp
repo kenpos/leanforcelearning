@@ -10,11 +10,17 @@ std::uniform_int_distribution<> dist1(0, mapsize);
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
 
+//const以外の数値を.hで定義すると怒られるので
+int outputcount = 100000;
+double p1Qvalue[qSize][qSize][qSize][ACTION] ;
+double p2Qvalue[qSize][qSize][qSize][ACTION] ;
+unsigned int map[mapsize][mapsize] ;
+
 int main() {
-	checkExistenceOfFolder("Evaluation/");
-	checkExistenceOfFolder("moveData/");
-	checkExistenceOfFolder("Qval/");
-	checkExistenceOfFolder("Result/");
+//	checkExistenceOfFolder("Evaluation/");
+//	checkExistenceOfFolder("moveData/");
+//	checkExistenceOfFolder("Qval/");
+//	checkExistenceOfFolder("Result/");
 
 	State p1 = initState(dist1(engine), dist1(engine));
 	State p2 = initState(dist1(engine), dist1(engine));
@@ -69,7 +75,7 @@ int main() {
 
 
 void EvaluationFunction(int evacount) {
-	checkExistenceOfFolder("Evaluation/" + to_string(evacount));
+	//checkExistenceOfFolder("Evaluation/" + to_string(evacount));
 	random_device seed_gen;
 	mt19937 engine(seed_gen());
 	std::uniform_int_distribution<> dist1(0, mapsize);
@@ -83,7 +89,7 @@ void EvaluationFunction(int evacount) {
 	ofstream evalresultfile;
 	string evalfilename = "Result.txt";
 	evalresultfile.open("Evaluation/" + to_string(evacount) + "/" + evalfilename, std::ios::app);
-	
+
 	while (gamecount < EVALUATIONCOUNT) {
 		//do {
 		evalp1 = initState(dist1(engine), dist1(engine));
@@ -107,7 +113,7 @@ void outputEvaluationQvalueTable(int evacount) {
 	ofstream outputQvaldata1;
 	string filename = "EvalQdata.csv";
 
-	checkExistenceOfFolder("Evaluation/" + to_string(evacount));
+	//checkExistenceOfFolder("Evaluation/" + to_string(evacount));
 	outputQvaldata1.open("Evaluation/" + to_string(evacount) + "/Qdata" + filename, std::ios::app);
 	const int dx[] = { 0,1,0,-1,0 };
 	const int dy[] = { -1,0,1,0,0 };
@@ -369,7 +375,7 @@ int QlearningMethod(State p1,State p2, State enemy, int gamecount)
 
 		p2 = protCharactor(p2, p1action);
 		State p2afterstate = searchRelationEnemy(p2, enemy);
-			
+
 
 		if (blindcount == false) {
 			p1state.locate_enemy_count = 0;
@@ -603,22 +609,22 @@ bool calcReward(State p1state, State p1afterstate, State p2state, State p2afters
 
 	//Surround Enemy																											//はさむことが出来れば追加
 	if (checkSurroundbyPlayer(p1, p2, enemy) == true) {
-		p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (rewards + gamma * maxQ1);
-		p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (rewards + gamma * maxQ2);
+		p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (rewards + ganna * maxQ1);
+		p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (rewards + ganna * maxQ2);
 		return true;
 	}
 
 	//Player1
 	//if (checkNexttoEnemy(p1, enemy) == true) {
-	//	p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (subrewards + gamma * maxQ1);
+	//	p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (subrewards + ganna * maxQ1);
 	//}
 	//
 	////Player2
 	//if (checkNexttoEnemy(p2, enemy) == true) {
-	//	p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (subrewards + gamma * maxQ2);
+	//	p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (subrewards + ganna * maxQ2);
 	//}
 
-	p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (faild + gamma * maxQ1);
-	p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (faild + gamma * maxQ2);
+	p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (faild + ganna * maxQ1);
+	p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (faild + ganna * maxQ2);
 	return false;
 }
