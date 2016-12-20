@@ -609,14 +609,14 @@ bool calcReward(State p1state, State p1afterstate, State p2state, State p2afters
 	}
 
 	//Player1
-	if (checkNexttoEnemy(p1, enemy) == true) {
-		p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (subrewards + gamma * maxQ1);
-	}
-	
-	//Player2
-	if (checkNexttoEnemy(p2, enemy) == true) {
-		p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (subrewards + gamma * maxQ2);
-	}
+	//if (checkNexttoEnemy(p1, enemy) == true) {
+	//	p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (subrewards + gamma * maxQ1);
+	//}
+	//
+	////Player2
+	//if (checkNexttoEnemy(p2, enemy) == true) {
+	//	p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (subrewards + gamma * maxQ2);
+	//}
 
 	p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[p1state.first][p1state.second][p1state.locate_enemy_count][action] + AttenuationAlpha* (faild + gamma * maxQ1);
 	p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] = (1 - AttenuationAlpha)*p2Qvalue[p2state.first][p2state.second][p2state.locate_enemy_count][action2] + AttenuationAlpha* (faild + gamma * maxQ2);

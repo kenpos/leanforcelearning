@@ -15,18 +15,18 @@ struct State {
 	int locate_enemy_count;
 };
 
-const int eyesight = 7;//視界の広さ
+const int eyesight = 4;//視界の広さ
 const int qSize = eyesight * 2 + 1;//Q値の大きさ
-const int mapsize = 15;
+const int mapsize = 9;
 const int ACTION = 5;
 const bool blindcount = true;//何ターン敵を見ていないか　という状態数を反映させるか否か
 const bool checkmovenemy = false;
-const int MAXGAME = 2000000;//回
+const int MAXGAME = 200000000;//回
 const int EPISODECOUNT = 500; //1エピソード辺りどの程度
 
 const int EVALUATIONCOUNT = 10000;//回　一回の評価エピソード数
 
-int outputcount = 1000;
+int outputcount = 100000;
 
 const int EPSILON = 40;
 
@@ -34,7 +34,7 @@ const double gamma = 0.8;
 const double alpha = 0.1;
 const double faild = 0;
 const double rewards = 100;
-const double subrewards = 1;
+const double subrewards = 0;
 
 double p1Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
 double p2Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
