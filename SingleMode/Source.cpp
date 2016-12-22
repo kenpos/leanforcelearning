@@ -10,7 +10,7 @@ std::uniform_int_distribution<> dist1(0, mapsize);
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
 
-int outputcount = 10000; //評価を始めるゲーム数
+int outputcount = 100000; //評価を始めるゲーム数
 double p1Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
 double p2Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
 
@@ -18,16 +18,16 @@ int movedata1[mapsize][mapsize] = { 0 };
 int movedata2[mapsize][mapsize] = { 0 };
 unsigned int map[mapsize][mapsize] = { 0 };
 
-void makeDirectory(std::string path){
+void makeDirectory(std::string path) {
 	std::string command = "mkdir ";
 	command.append(path);
 	system(command.c_str());
 }
 
 int main() {
-	makeDirectory("Result");
-	makeDirectory("Evaluation");
-	makeDirectory("moveData");
+	makeDirectory("./Result");
+	makeDirectory("./Evaluation");
+	makeDirectory("./moveData");
 
 	State p1 = initState(dist1(engine), dist1(engine));
 	State enemy = initState(dist1(engine), dist1(engine));
@@ -39,7 +39,7 @@ int main() {
 
 	ofstream resultfile;
 	string filename = "Result.txt";
-	resultfile.open(".\\Result\\" + filename, std::ios::app);
+	resultfile.open("Result/" + filename, std::ios::app);
 
 	int gamecount = 0;
 	int episodecount = 0;
@@ -61,7 +61,7 @@ int main() {
 		if (gamecount == outputcount) {
 			outputQvalueTable(gamecount);
 			EvaluationFunction(gamecount);
-		//	//桁が一つ上がる度に記録する
+			//	//桁が一つ上がる度に記録する
 			outputcount = outputcount * 10;
 		}
 		gamecount++;
@@ -82,11 +82,11 @@ void EvaluationFunction(int evacount) {
 	State evalp1 = initState(dist1(engine), dist1(engine));
 	State evalenemy = initState(dist1(engine), dist1(engine));
 
-	makeDirectory(".\\Evaluation\\" + to_string(evacount));
+	makeDirectory("./Evaluation/" + to_string(evacount));
 
 	ofstream evalresultfile;
 	string evalfilename = "Result.txt";
-	evalresultfile.open(".\\Evaluation\\" + to_string(evacount) + "\\" + evalfilename, std::ios::app);
+	evalresultfile.open("Evaluation/" + to_string(evacount) + "/" + evalfilename, std::ios::app);
 	while (gamecount < EVALUATIONCOUNT) {
 		//do {
 		evalp1 = initState(dist1(engine), dist1(engine));
@@ -96,7 +96,7 @@ void EvaluationFunction(int evacount) {
 		setPlayer(evalp1);
 		setEnemy(evalenemy);
 
-		episodecount = SoloQlearningEvaluationMethod(evalp1, evalenemy, gamecount,evacount);
+		episodecount = SoloQlearningEvaluationMethod(evalp1, evalenemy, gamecount, evacount);
 		resetmap();
 
 		evalresultfile << gamecount << "," << episodecount << std::endl;
@@ -110,7 +110,7 @@ void outputEvaluationQvalueTable(int evacount) {
 	ofstream outputQvaldata1;
 	string filename = "EvalQdata.csv";
 
-	outputQvaldata1.open(".\\Evaluation\\" + to_string(evacount) + "\\Qdata" + filename, std::ios::app);
+	outputQvaldata1.open("Evaluation/" + to_string(evacount) + "/Qdata" + filename, std::ios::app);
 	for (int m = 0; m < qSize; m++) {
 		for (int i = 0; i < qSize; i++) {
 			for (int j = 0; j < qSize; j++) {
@@ -127,7 +127,7 @@ void outputMoveData(int gamecount, vector<outputData> d) {
 	stringstream ss;
 	ss << gamecount;
 	string movedatafilename = ss.str() + ".csv";
-	outputmovedata.open(".\\moveData\\" + movedatafilename, std::ios::app);
+	outputmovedata.open("moveData/" + movedatafilename, std::ios::app);
 	int i = 0;
 	for (auto var : d)
 	{
@@ -364,7 +364,7 @@ void outputQvalueTable(int gamecount) {
 
 
 //評価用
-int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evacount)
+int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evacount)
 {
 	int episodecount = 0;
 	ofstream outputmovedata;
@@ -387,7 +387,8 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evaco
 		//ランダムにキャラクターを動かす
 		if (checkmovenemy == true) {
 			enemy = protEnemyCharactor(enemy, action(engine));
-		}else{
+		}
+		else {
 			enemy = protEnemyCharactor(enemy, 4);
 		}
 		//行動の実施
@@ -406,7 +407,7 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evaco
 			break;
 		}
 	}
-	if(gamecount >= MAXGAME - 50){
+	if (gamecount >= MAXGAME - 50) {
 		outputMoveData(gamecount, tmpd);
 	}
 	tmpd.clear();
@@ -446,7 +447,8 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 		//ランダムにキャラクターを動かす
 		if (checkmovenemy == true) {
 			enemy = protEnemyCharactor(enemy, action(engine));
-		}else{
+		}
+		else {
 			enemy = protEnemyCharactor(enemy, 4);
 		}
 

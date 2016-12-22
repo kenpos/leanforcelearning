@@ -26,10 +26,10 @@ const int mapsize = 15;
 const int ACTION = 5;
 const bool blindcount = true;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
 const bool checkmovenemy = false;
-const int MAXGAME = 2000;//��
+const int MAXGAME = 50000000;//��
 const int EPISODECOUNT = 500; //1�G�s�\�[�h�ӂ��ǂ̒��x
 
-const int EVALUATIONCOUNT = 10;//���@�����̕]���G�s�\�[�h��
+const int EVALUATIONCOUNT = 10000;//���@�����̕]���G�s�\�[�h��
 
 
 const int EPSILON = 40;
