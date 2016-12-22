@@ -4,13 +4,13 @@ using namespace std;
 
 // メルセンヌ・ツイスター法による擬似乱数生成器を、
 // ハードウェア乱数をシードにして初期化
-random_device seed_gen;
-mt19937 engine(seed_gen());
-std::uniform_int_distribution<> dist1(0, mapsize);
+std::random_device rnd;
+std::mt19937 engine(rnd());
+auto ranran = std::bind(std::uniform_int_distribution<int>(0, mapsize), std::mt19937(static_cast<unsigned int>(time(nullptr))));
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
 
-int outputcount = 100000; //評価を始めるゲーム数
+int outputcount = 10; //評価を始めるゲーム数
 double p1Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
 double p2Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
 
@@ -25,12 +25,15 @@ void makeDirectory(std::string path) {
 }
 
 int main() {
-	makeDirectory("./Result");
-	makeDirectory("./Evaluation");
-	makeDirectory("./moveData");
 
-	State p1 = initState(dist1(engine), dist1(engine));
-	State enemy = initState(dist1(engine), dist1(engine));
+
+	cout << "Hellow world" << endl;
+	makeDirectory("Result");
+	makeDirectory("Evaluation");
+	makeDirectory("moveData");
+
+	State p1 = initState(ranran(), ranran());
+	State enemy = initState(ranran(), ranran());
 
 	setPlayer(p1);
 	setEnemy(enemy);
@@ -45,13 +48,13 @@ int main() {
 	int episodecount = 0;
 	//メインループ
 	while (gamecount < MAXGAME) {
+		do {
+			p1 = initState(ranran(), ranran());
+			enemy = initState(ranran(), ranran());
+		}while (p1.first == enemy.first && p1.second == enemy.second);
+
 		episodecount = SoloQlearningMethod(p1, enemy, gamecount);
 		resetmap();
-
-		while (p1.first == enemy.first && p1.second == enemy.second) {
-			p1 = initState(dist1(engine), dist1(engine));
-			enemy = initState(dist1(engine), dist1(engine));
-		}
 		setPlayer(p1);
 		setEnemy(enemy);
 
@@ -79,18 +82,20 @@ void EvaluationFunction(int evacount) {
 
 	int gamecount = 0;
 	int episodecount = 0;
-	State evalp1 = initState(dist1(engine), dist1(engine));
-	State evalenemy = initState(dist1(engine), dist1(engine));
+	State evalp1 = initState(ranran(), ranran());
+	State evalenemy = initState(ranran(), ranran());
 
-	makeDirectory("./Evaluation/" + to_string(evacount));
+	std::string foldaname = "Evaluation\\";
+	foldaname.append(to_string(evacount));
+	makeDirectory(foldaname);
 
 	ofstream evalresultfile;
 	string evalfilename = "Result.txt";
 	evalresultfile.open("Evaluation/" + to_string(evacount) + "/" + evalfilename, std::ios::app);
 	while (gamecount < EVALUATIONCOUNT) {
 		//do {
-		evalp1 = initState(dist1(engine), dist1(engine));
-		evalenemy = initState(dist1(engine), dist1(engine));
+		evalp1 = initState(ranran(), ranran());
+		evalenemy = initState(ranran(), ranran());
 		//} while (evalp1.first == evalenemy.first && evalp1.second == evalenemy.second);
 
 		setPlayer(evalp1);
@@ -128,6 +133,25 @@ void outputMoveData(int gamecount, vector<outputData> d) {
 	ss << gamecount;
 	string movedatafilename = ss.str() + ".csv";
 	outputmovedata.open("moveData/" + movedatafilename, std::ios::app);
+	int i = 0;
+	for (auto var : d)
+	{
+		outputmovedata << i << "," << var.first << "," << var.second << "," << var.efirst << "," << var.esecond << std::endl;
+		i++;
+	}
+
+}
+
+void outputEvaluationMoveData(int evacount, int gamecount, vector<outputData> d) {
+
+	std::string foldaname;
+	foldaname.append(to_string(evacount));
+
+	ofstream outputmovedata;
+	stringstream ss;
+	ss << gamecount;
+	std::string movedatafilename = ss.str() + ".csv";
+	outputmovedata.open("Evaluation/"+ foldaname + "/" + movedatafilename, std::ios::app);
 	int i = 0;
 	for (auto var : d)
 	{
@@ -367,9 +391,6 @@ void outputQvalueTable(int gamecount) {
 int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evacount)
 {
 	int episodecount = 0;
-	ofstream outputmovedata;
-	string movedatafilename = to_string(gamecount) + ".csv";
-	outputmovedata.open("Evaluation/" + to_string(evacount) + "/" + movedatafilename, std::ios::app);
 
 	vector<outputData> tmpd;
 
@@ -401,16 +422,15 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evac
 			p1.locate_enemy_count = 0;
 			p1afterstate.locate_enemy_count = 0;
 		}
+
 		tmpd.push_back({ p1.first,p1.second,enemy.first,enemy.second });
 		episodecount++;
 		if (checkNexttoEnemy(p1, enemy) == true) {
 			break;
 		}
 	}
-	if (gamecount >= MAXGAME - 50) {
-		outputMoveData(gamecount, tmpd);
-	}
-	tmpd.clear();
+		outputEvaluationMoveData(evacount, gamecount, tmpd);
+		tmpd.clear();
 
 	return episodecount;
 }
@@ -420,18 +440,11 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 {
 	int episodecount = 0;
 
-	ofstream outputmovedata;
-	stringstream ss;
-	ss << gamecount;
-	string movedatafilename = ss.str() + ".csv";
-
 	int c = 100000 + gamecount;
 	double AttenuationAlpha = (double)100000 / (double)c;
 	double AAlpha = (double)alpha *AttenuationAlpha;
 
-	if (MAXGAME - 50 < gamecount) {
-		outputmovedata.open("moveData/" + movedatafilename, std::ios::app);
-	}
+	vector<outputData> tmpd;
 
 	while (episodecount < EPISODECOUNT) {
 		//視界内での状態の把握
@@ -466,9 +479,7 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 		//報酬の付与
 		calcSoloReward(p1state, p1afterstate, p1action, p1, enemy, AAlpha);
 
-		//ラスト50ゲームのファイルだけ出力
-		outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << enemy.first << "," << enemy.second << std::endl;
-
+		tmpd.push_back({ p1.first,p1.second,enemy.first,enemy.second });
 
 		//drawMap();
 		//ゲームの修了判定
@@ -477,6 +488,10 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 			break;
 		}
 	}
+	if(gamecount >= MAXGAME - 50){
+		outputMoveData(gamecount, tmpd);
+	}
+	tmpd.clear();
 	return episodecount;
 }
 
