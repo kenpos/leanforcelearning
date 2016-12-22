@@ -10,11 +10,25 @@ std::uniform_int_distribution<> dist1(0, mapsize);
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
 
+int outputcount = 10000; //評価を始めるゲーム数
+double p1Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
+double p2Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
+
+int movedata1[mapsize][mapsize] = { 0 };
+int movedata2[mapsize][mapsize] = { 0 };
+unsigned int map[mapsize][mapsize] = { 0 };
+
+void makeDirectory(std::string path){
+	std::string command = "mkdir ";
+	command.append(path);
+	system(command.c_str());
+}
+
 int main() {
-	checkExistenceOfFolder("Evaluation/");
-	checkExistenceOfFolder("moveData/");
-	checkExistenceOfFolder("Qval/");
-	checkExistenceOfFolder("Result/");
+	makeDirectory("Result");
+	makeDirectory("Evaluation");
+	makeDirectory("Qval");
+	makeDirectory("moveData");
 
 	State p1 = initState(dist1(engine), dist1(engine));
 	State enemy = initState(dist1(engine), dist1(engine));
@@ -23,7 +37,6 @@ int main() {
 	setEnemy(enemy);
 
 	initializeQvalue();
-	//フォルダが無ければ作成
 
 	ofstream resultfile;
 	string filename = "Result.txt";
@@ -48,16 +61,14 @@ int main() {
 		//評価用
 		if (gamecount == outputcount) {
 			outputQvalueTable(gamecount);
-			outputEvaluationQvalueTable(gamecount);
 			EvaluationFunction(gamecount);
-			//桁が一つ上がる度に記録する
+		//	//桁が一つ上がる度に記録する
 			outputcount = outputcount * 10;
 		}
 		gamecount++;
 	}
 	//Qvalの出力
 	outputQvalueTable(gamecount);
-	outputEvaluationQvalueTable(gamecount);
 	EvaluationFunction(gamecount);
 	resultfile.close();
 
@@ -66,15 +77,12 @@ int main() {
 
 
 void EvaluationFunction(int evacount) {
-	checkExistenceOfFolder("Evaluation/" + to_string(evacount));
-	random_device seed_gen;
-	mt19937 engine(seed_gen());
-	std::uniform_int_distribution<> dist1(0, mapsize);
 
 	int gamecount = 0;
 	int episodecount = 0;
 	State evalp1 = initState(dist1(engine), dist1(engine));
 	State evalenemy = initState(dist1(engine), dist1(engine));
+
 	ofstream evalresultfile;
 	string evalfilename = "Result.txt";
 	evalresultfile.open("Evaluation/" + to_string(evacount) + "/" + evalfilename, std::ios::app);
@@ -101,7 +109,6 @@ void outputEvaluationQvalueTable(int evacount) {
 	ofstream outputQvaldata1;
 	string filename = "EvalQdata.csv";
 
-	checkExistenceOfFolder("Evaluation/" + to_string(evacount));
 	outputQvaldata1.open("Evaluation/" + to_string(evacount) + "/Qdata" + filename, std::ios::app);
 	const int dx[] = { 0,1,0,-1,0 };
 	const int dy[] = { -1,0,1,0,0 };
@@ -114,6 +121,21 @@ void outputEvaluationQvalueTable(int evacount) {
 			}outputQvaldata1 << endl;
 		}
 	}
+}
+
+void outputMoveData(int gamecount, vector<outputData> d) {
+	ofstream outputmovedata;
+	stringstream ss;
+	ss << gamecount;
+	string movedatafilename = ss.str() + ".csv";
+	outputmovedata.open(".\\" + ss.str() + "\\moveData\\" + movedatafilename, std::ios::app);
+	int i = 0;
+	for (auto var : d)
+	{
+		outputmovedata << i << "," << var.first << "," << var.second << "," << var.efirst << "," << var.esecond << std::endl;
+		i++;
+	}
+
 }
 
 
@@ -232,6 +254,22 @@ State protEnemyCharactor(State player, int action) {
 	return player;
 }
 
+//敵がエージェントから
+int escapeaction() {
+	int action = 4;
+
+
+	return action;
+}
+
+//敵がエージェントから逃げるように移動する
+State protEscapeEnemyCharactor(State enemy) {
+	resetPlayer(enemy);
+	int action = escapeaction();
+	enemy = moveCharacter(enemy, action);
+	setEnemy(enemy);
+	return enemy;
+}
 //キャラクターを移動させ,移動することが出来ればその移動先の座標を返す
 State moveCharacter(State character, int action) {
 	const int dx[] = { 0,1,0,-1,0 };
@@ -310,7 +348,7 @@ void outputQvalueTable(int gamecount) {
 	ofstream outputQvaldata1;
 	string filename = to_string(gamecount) + ".csv";
 
-	outputQvaldata1.open("Qval/Qdata" + filename, std::ios::app);
+	outputQvaldata1.open("Evaluation/Qdata" + filename, std::ios::app);
 	const int dx[] = { 0,1,0,-1,0 };
 	const int dy[] = { -1,0,1,0,0 };
 	//Q値を0.0で初期化
@@ -330,116 +368,6 @@ void outputQvalueTable(int gamecount) {
 	}
 }
 
-//void outputDoublePlayQvalueTable() {
-//	ofstream outputQvaldata1;
-//	ofstream outputQvaldata2;
-//	string filename1 = "p1.csv";
-//	string filename2 = "p2.csv";
-//
-//	outputQvaldata1.open(".\\" + foldaname + "\\Qval\\Qdata" + filename1, std::ios::app);
-//	outputQvaldata2.open(".\\" + foldaname + "\\Qval\\Qdata" + filename2, std::ios::app);
-//
-//	const int dx[] = { 0,1,0,-1,0 };
-//	const int dy[] = { -1,0,1,0,0 };
-//	//Q値を0.0で初期化
-//	for (int i = 0; i < qSize; i++) {
-//		for (int j = 0; j < qSize; j++) {
-//			outputQvaldata1 << "," << p1Qvalue[i][j][2] << "," <<endl;
-//			outputQvaldata1 << p1Qvalue[i][j][3] << "," << p1Qvalue[i][j][4] << "," << p1Qvalue[i][j][1] << endl;
-//			outputQvaldata1 << "," << p1Qvalue[i][j][0] << "," <<endl;
-//
-//			outputQvaldata2 << "," << p1Qvalue[i][j][2] << ",";
-//			outputQvaldata2 << p1Qvalue[i][j][3] << "," << p1Qvalue[i][j][4] << "," << p1Qvalue[i][j][1];
-//			outputQvaldata2 << "," << p1Qvalue[i][j][0] << ",";
-//		} outputQvaldata1 << endl; outputQvaldata2 << endl;
-//	}
-//
-//}
-
-
-//1エピソードを再現する.
-/*
-(1)エージェントは環境の状態sを観測する
-(2)任意の行動選択をし，行動aを実行する
-(3)環境から報酬を受け取る
-*/
-//int QlearningMethod(State p1, State p2, State enemy,int gamecount) {
-//	int episodecount = 0;
-//
-//	//ofstream outputQvaldata1;
-//	//ofstream outputQvaldata2;
-//	//ofstream outputmovecount1;
-//	//ofstream outputmovecount2;
-//	stringstream ss;
-//	ss << gamecount;
-//	//string filename1 = ss.str() + "p1.csv";
-//	//string filename2 = ss.str() + "p2.csv";
-//	string filename = ss.str() + ".csv";
-//	//
-//	//outputQvaldata1.open(".\\" + foldaname + "\\Qval\\data" + filename1 , std::ios::app);
-//	//outputQvaldata2.open(".\\" + foldaname + "\\Qval\\data" + filename2 , std::ios::app);
-//	//outputmovecount1.open(".\\" + foldaname + "\\movecount\\data" + filename1 , std::ios::app);
-//	//outputmovecount2.open(".\\" + foldaname + "\\movecount\\data" + filename2 , std::ios::app);
-//
-//	int c = 100000 + gamecount;
-//	double AAlpha = (double)100000 / c;
-//	double AttenuationAlpha = (double)alpha *AAlpha;
-//
-//	while (episodecount < EPISODECOUNT) {
-//		//視界内での状態の把握
-//		//敵の位置を自分との相対位置で認識
-//		State p1state = searchRelationEnemy(p1, enemy);
-//		State p2state = searchRelationEnemy(p2, enemy);
-//
-//		//Q値に基づく行動の選択
-//		int p1action = chooseAnAction(p1state,p1,1);
-//		int p2action = chooseAnAction(p2state,p2,2);
-//
-//		//行動の実施
-//		p1 = protCharactor(p1, p1action);
-//		movedata1[p1.first][p1.second]++;
-//		p2 = protCharactor(p2, p2action);
-//		movedata2[p2.first][p2.second]++;
-//
-//		//行動を実施した後の相対位置を認識
-//		State p1afterstate = searchRelationEnemy(p1, enemy);
-//		State p2afterstate = searchRelationEnemy(p2, enemy);
-//
-//		//報酬の付与
-//		calcReward(p1state, p1afterstate, p1action, p1, p2, enemy, 1, AttenuationAlpha);
-//		calcReward(p2state, p2afterstate, p2action, p1, p2, enemy, 2, AttenuationAlpha);
-//
-//		//ファイル出力
-//		if (MAXGAME -50 < gamecount) {
-//			ofstream outputmovedata;
-//			outputmovedata.open(".\\" + foldaname + "\\moveData\\" + filename, std::ios::app);
-//			outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << p2.first << "," << p2.second << "," << enemy.first << "," << enemy.second << std::endl;
-//		}
-//		//drawMap();
-//
-//		//ゲームの修了判定
-//		episodecount++;
-//		if (checkSurroundbyPlayer(p1, p2, enemy) == true) {//二人用
-//		break;
-//		}
-//	}
-//	//std::cout << "GAME:" <<gamecount << " "<< episodecount << " 終了！" << endl;
-//	
-//	outputDoublePlayQvalueTable();
-//
-//	//MoveCountの出力
-//	//for (int i = 0; i < mapsize; i++) {
-//	//	for (int j = 0; j < mapsize; j++) {
-//	//		outputmovecount1 << movedata1[i][j] << ",";
-//	//		outputmovecount2 << movedata2[i][j] << ",";
-//	//	}
-//	//	outputmovecount1 << endl;outputmovecount2 << endl;
-//	//}
-//	//outputmovecount1 << endl;outputmovecount2 << endl;
-//		//outputmovedata.close();
-//
-//	return episodecount;
-//}
 
 //評価用
 int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evacount)
@@ -448,6 +376,8 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evaco
 	ofstream outputmovedata;
 	string movedatafilename = to_string(gamecount) + ".csv";
 	outputmovedata.open("Evaluation/" + to_string(evacount) + "/" + movedatafilename, std::ios::app);
+
+	vector<outputData> tmpd;
 
 	while (episodecount < EPISODECOUNT) {
 		//視界内での状態の把握
@@ -474,13 +404,15 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evaco
 			p1.locate_enemy_count = 0;
 			p1afterstate.locate_enemy_count = 0;
 		}
-		outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << enemy.first << "," << enemy.second << std::endl;
-
+		tmpd.push_back({ p1.first,p1.second,enemy.first,enemy.second });
 		episodecount++;
 		if (checkNexttoEnemy(p1, enemy) == true) {
 			break;
 		}
 	}
+	outputMoveData(gamecount, tmpd);
+	tmpd.clear();
+
 	return episodecount;
 }
 
@@ -677,9 +609,7 @@ int getMaxQAction(State state, int playernum) {
 
 //評価用移動メソッド
 int chooseAnEvaluationAction(State playerstate, int playernum) {
-	//�ʏ��́AQ�l���ő剻�����s�����I��
 	int	action = getMaxQAction(playerstate, playernum);
-
 	return action;
 }
 
@@ -693,9 +623,9 @@ bool calcSoloReward(State state, State afterstate, int action, State player, Sta
 	int nextaction = getMaxQAction(afterstate, 1);						//afterでの最大Q値を出す行動
 	maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.locate_enemy_count][nextaction];			//afterでの最大Q値
 	if (checkNexttoEnemy(player, enemy) == true) {
-		p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + gamma * maxQ);
+		p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + ganna * maxQ);
 		return true;
 	}
-	p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (faild + gamma * maxQ);
+	p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (faild + ganna * maxQ);
 	return false;
 }
