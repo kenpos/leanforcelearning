@@ -27,7 +27,6 @@ void makeDirectory(std::string path){
 int main() {
 	makeDirectory("Result");
 	makeDirectory("Evaluation");
-	makeDirectory("Qval");
 	makeDirectory("moveData");
 
 	State p1 = initState(dist1(engine), dist1(engine));
@@ -40,7 +39,7 @@ int main() {
 
 	ofstream resultfile;
 	string filename = "Result.txt";
-	resultfile.open("Result/" + filename, std::ios::app);
+	resultfile.open(".\\Result\\" + filename, std::ios::app);
 
 	int gamecount = 0;
 	int episodecount = 0;
@@ -83,9 +82,11 @@ void EvaluationFunction(int evacount) {
 	State evalp1 = initState(dist1(engine), dist1(engine));
 	State evalenemy = initState(dist1(engine), dist1(engine));
 
+	makeDirectory(".\\Evaluation\\" + to_string(evacount));
+
 	ofstream evalresultfile;
 	string evalfilename = "Result.txt";
-	evalresultfile.open("Evaluation/" + to_string(evacount) + "/" + evalfilename, std::ios::app);
+	evalresultfile.open(".\\Evaluation\\" + to_string(evacount) + "\\" + evalfilename, std::ios::app);
 	while (gamecount < EVALUATIONCOUNT) {
 		//do {
 		evalp1 = initState(dist1(engine), dist1(engine));
@@ -109,9 +110,7 @@ void outputEvaluationQvalueTable(int evacount) {
 	ofstream outputQvaldata1;
 	string filename = "EvalQdata.csv";
 
-	outputQvaldata1.open("Evaluation/" + to_string(evacount) + "/Qdata" + filename, std::ios::app);
-	const int dx[] = { 0,1,0,-1,0 };
-	const int dy[] = { -1,0,1,0,0 };
+	outputQvaldata1.open(".\\Evaluation\\" + to_string(evacount) + "\\Qdata" + filename, std::ios::app);
 	for (int m = 0; m < qSize; m++) {
 		for (int i = 0; i < qSize; i++) {
 			for (int j = 0; j < qSize; j++) {
@@ -128,7 +127,7 @@ void outputMoveData(int gamecount, vector<outputData> d) {
 	stringstream ss;
 	ss << gamecount;
 	string movedatafilename = ss.str() + ".csv";
-	outputmovedata.open(".\\" + ss.str() + "\\moveData\\" + movedatafilename, std::ios::app);
+	outputmovedata.open(".\\moveData\\" + movedatafilename, std::ios::app);
 	int i = 0;
 	for (auto var : d)
 	{
@@ -184,9 +183,6 @@ void resetPlayer(State player) {
 
 //敵の隣にプレイヤがいるかどうかを調べる.
 bool checkNexttoEnemy(State player, State enemy) {
-	const int dx[] = { 0,1,0,-1,0 };
-	const int dy[] = { -1,0,1,0,0 };
-
 	for (int action = 0; action < 5; action++) {
 		State tmp = checkCharacter(player, action);
 		if (enemy.first == tmp.first && enemy.second == tmp.second) {
@@ -349,8 +345,6 @@ void outputQvalueTable(int gamecount) {
 	string filename = to_string(gamecount) + ".csv";
 
 	outputQvaldata1.open("Evaluation/Qdata" + filename, std::ios::app);
-	const int dx[] = { 0,1,0,-1,0 };
-	const int dy[] = { -1,0,1,0,0 };
 	//Q値を0.0で初期化
 	for (int m = 0; m < qSize; m++) {
 		for (int i = 0; i < qSize; i++) {
@@ -393,6 +387,8 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evaco
 		//ランダムにキャラクターを動かす
 		if (checkmovenemy == true) {
 			enemy = protEnemyCharactor(enemy, action(engine));
+		}else{
+			enemy = protEnemyCharactor(enemy, 4);
 		}
 		//行動の実施
 		p1 = protCharactor(p1, p1action);
@@ -410,7 +406,9 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount,int evaco
 			break;
 		}
 	}
-	outputMoveData(gamecount, tmpd);
+	if(gamecount >= MAXGAME - 50){
+		outputMoveData(gamecount, tmpd);
+	}
 	tmpd.clear();
 
 	return episodecount;
@@ -448,6 +446,8 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 		//ランダムにキャラクターを動かす
 		if (checkmovenemy == true) {
 			enemy = protEnemyCharactor(enemy, action(engine));
+		}else{
+			enemy = protEnemyCharactor(enemy, 4);
 		}
 
 		//行動の実施
