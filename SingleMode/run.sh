@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿#!/bin/sh
+=======
+#!/bin/sh
+>>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 #スパコンで実行する場合,windowsとlinuxマシンでは改行文字が違うため,一度変換かます必要がある.
 #chomd +x runrun.sh　で実行権の付与も忘れずに
 #awk '{ sub("\r$",""); print}' run.sh > runrun.sh
@@ -13,11 +17,19 @@ do
 for var in 3 7;
 do
 #make folda
+<<<<<<< HEAD
 dir=$i/$j/$var; [ ! -e $dir ] && mkdir -p $dir
 #cd /home/s1510037/ResrachData/$i/$j/$var/
 #cd ${THIS_FILE_PATH%/*}/$i/$j/$var/
 #g++ -o a.o -std=c++11 Source.cpp Header.h
 icpc -O3 -o a.o -std=c++11 Source.cpp Header.h
+=======
+#dir=$i/$j/$var; [ ! -e $dir ] && mkdir -p $dir
+#cd /home/s1510037/ResrachData/$i/$j/$var/
+cd ${THIS_FILE_PATH%/*}/$i/$j/$var/
+g++ -o a.o -std=c++11 Source.cpp Header.h
+#icpc -O3 -o a.o -std=c++11 Source.cpp Header.h
+>>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 
 ./a.o &
 printf "$i/$j/$var finish\n"

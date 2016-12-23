@@ -19,7 +19,7 @@ int movedata2[mapsize][mapsize] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-unsigned int outputcount = 10000;
+int outputcount = 10000;
 
 void makeDirectory(std::string path) {
 	std::string command = "mkdir ";
