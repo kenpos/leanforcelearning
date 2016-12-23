@@ -2,7 +2,6 @@
 
 using namespace std;
 
-<<<<<<< HEAD
 // �����Z���k�E�c�C�X�^�[�@�ɂ����[���������������A
 // �n�[�h�E�F�A�������V�[�h�ɂ��ď�����
 random_device seed_gen;
@@ -12,17 +11,6 @@ auto dist1 = std::bind(std::uniform_int_distribution<int>(0, mapsize), std::mt19
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
 
-=======
-// メルセンヌ・ツイスター法による擬似乱数生成器を、
-// ハードウェア乱数をシードにして初期化
-std::random_device rnd;
-std::mt19937 engine(rnd());
-auto ranran = std::bind(std::uniform_int_distribution<int>(0, mapsize), std::mt19937(static_cast<unsigned int>(time(nullptr))));
-std::uniform_int_distribution<> action(0, ACTION);
-std::uniform_int_distribution<> makerandom(0, 100);
-
-int outputcount = 10; //評価を始めるゲーム数
->>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 double p1Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
 double p2Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
 
@@ -31,7 +19,7 @@ int movedata2[mapsize][mapsize] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-unsigned int outputcount = 10000;
+int outputcount = 10000000;
 
 void makeDirectory(std::string path) {
 	std::string command = "mkdir ";
@@ -47,7 +35,6 @@ string IntToString(int number)
 }
 
 int main() {
-<<<<<<< HEAD
 	makeDirectory("Result");
 	makeDirectory("Evaluation");
 	makeDirectory("moveData");
@@ -56,17 +43,6 @@ int main() {
 	State p1 = initState(dist1(engine), dist1(engine));
 	//State p2 =  initState(dist1(engine), (int)dist1(engine));
 	State enemy = initState(dist1(engine), dist1(engine));
-=======
-
-
-	cout << "Hellow world" << endl;
-	makeDirectory("Result");
-	makeDirectory("Evaluation");
-	makeDirectory("moveData");
-
-	State p1 = initState(ranran(), ranran());
-	State enemy = initState(ranran(), ranran());
->>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 
 	setPlayer(p1);
 	//setPlayer(p2);
@@ -83,22 +59,14 @@ int main() {
 	int episodecount = 0;
 	//���C�����[�v
 	while (gamecount < MAXGAME) {
-		do {
-			p1 = initState(ranran(), ranran());
-			enemy = initState(ranran(), ranran());
-		}while (p1.first == enemy.first && p1.second == enemy.second);
-
 		episodecount = SoloQlearningMethod(p1, enemy, gamecount);
 		resetmap();
-<<<<<<< HEAD
 
 		while (p1.first == enemy.first && p1.second == enemy.second) {
 			p1 = initState(dist1(engine), dist1(engine));
 			enemy = initState(dist1(engine), dist1(engine));
 			//	p2 = { (int)dist1(engine), (int)dist1(engine) };
 		}
-=======
->>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 		setPlayer(p1);
 		//setPlayer(p2);
 		setEnemy(enemy);
@@ -118,104 +86,11 @@ int main() {
 	outputQvalueTable(gamecount);
 	resultfile.close();
 
-<<<<<<< HEAD
-=======
-	return 0;
-}
-
-
-void EvaluationFunction(int evacount) {
-
-	int gamecount = 0;
-	int episodecount = 0;
-	State evalp1 = initState(ranran(), ranran());
-	State evalenemy = initState(ranran(), ranran());
-
-	std::string foldaname = "Evaluation\\";
-	foldaname.append(to_string(evacount));
-	makeDirectory(foldaname);
-
-	ofstream evalresultfile;
-	string evalfilename = "Result.txt";
-	evalresultfile.open("Evaluation/" + to_string(evacount) + "/" + evalfilename, std::ios::app);
-	while (gamecount < EVALUATIONCOUNT) {
-		//do {
-		evalp1 = initState(ranran(), ranran());
-		evalenemy = initState(ranran(), ranran());
-		//} while (evalp1.first == evalenemy.first && evalp1.second == evalenemy.second);
-
-		setPlayer(evalp1);
-		setEnemy(evalenemy);
-
-		episodecount = SoloQlearningEvaluationMethod(evalp1, evalenemy, gamecount, evacount);
-		resetmap();
-
-		evalresultfile << gamecount << "," << episodecount << std::endl;
-		gamecount++;
-	}
-	evalresultfile.close();
-}
-
-
-void outputEvaluationQvalueTable(int evacount) {
-	ofstream outputQvaldata1;
-	string filename = "EvalQdata.csv";
-
-	outputQvaldata1.open("Evaluation/" + to_string(evacount) + "/Qdata" + filename, std::ios::app);
-	for (int m = 0; m < qSize; m++) {
-		for (int i = 0; i < qSize; i++) {
-			for (int j = 0; j < qSize; j++) {
-				for (int action = 0; action < qSize; action++) {
-					outputQvaldata1 << p1Qvalue[i][j][m][action] << ",";
-				}		outputQvaldata1 << endl;
-			}outputQvaldata1 << endl;
-		}
-	}
-}
-
-void outputMoveData(int gamecount, vector<outputData> d) {
-	ofstream outputmovedata;
-	stringstream ss;
-	ss << gamecount;
-	string movedatafilename = ss.str() + ".csv";
-	outputmovedata.open("moveData/" + movedatafilename, std::ios::app);
-	int i = 0;
-	for (auto var : d)
-	{
-		outputmovedata << i << "," << var.first << "," << var.second << "," << var.efirst << "," << var.esecond << std::endl;
-		i++;
-	}
->>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 
 	return 0;
 }
 
-<<<<<<< HEAD
 //Map�̏�����
-=======
-void outputEvaluationMoveData(int evacount, int gamecount, vector<outputData> d) {
-
-	std::string foldaname;
-	foldaname.append(to_string(evacount));
-
-	ofstream outputmovedata;
-	stringstream ss;
-	ss << gamecount;
-	std::string movedatafilename = ss.str() + ".csv";
-	outputmovedata.open("Evaluation/"+ foldaname + "/" + movedatafilename, std::ios::app);
-	int i = 0;
-	for (auto var : d)
-	{
-		outputmovedata << i << "," << var.first << "," << var.second << "," << var.efirst << "," << var.esecond << std::endl;
-		i++;
-	}
-
-}
-
-
-
-//Mapの初期化
->>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 void resetmap() {
 	for (int y = 0; y < mapsize; y++) {
 		for (int x = 0; x < mapsize; x++) {
@@ -639,11 +514,18 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 {
 	int episodecount = 0;
 
+	ofstream outputmovedata;
+	stringstream ss;
+	ss << gamecount;
+	string movedatafilename = ss.str() + ".csv";
+
 	int c = 100000 + gamecount;
 	double AttenuationAlpha = (double)100000 / (double)c;
 	double AAlpha = (double)alpha *AttenuationAlpha;
 
-	vector<outputData> tmpd;
+	if (MAXGAME - 50 < gamecount) {
+		outputmovedata.open("moveData/" + movedatafilename, std::ios::app);
+	}
 
 	while (episodecount < EPISODECOUNT) {
 		//���E���ł̏��Ԃ̔c��
@@ -675,13 +557,9 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 		//���V�̕t�^
 		calcSoloReward(p1state, p1afterstate, p1action, p1, enemy, AAlpha);
 
-<<<<<<< HEAD
 		//���X�g50�Q�[���̃t�@�C�������o��
 		outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << enemy.first << "," << enemy.second << std::endl;
 
-=======
-		tmpd.push_back({ p1.first,p1.second,enemy.first,enemy.second });
->>>>>>> a1675a5e6f4c53ece7354bdd9b6b6de7b1a01892
 
 		//drawMap();
 		//�Q�[���̏C������
@@ -690,10 +568,6 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 			break;
 		}
 	}
-	if(gamecount >= MAXGAME - 50){
-		outputMoveData(gamecount, tmpd);
-	}
-	tmpd.clear();
 	return episodecount;
 }
 
@@ -836,9 +710,9 @@ bool calcSoloReward(State state, State afterstate, int action, State player, Sta
 	int nextaction = getMaxQAction(afterstate, 1);						//after�ł̍ő�Q�l���o���s��
 	maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.locate_enemy_count][nextaction];			//after�ł̍ő�Q�l
 	if (checkNexttoEnemy(player, enemy) == true) {
-		p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + gamma * maxQ);
+		p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + ganna * maxQ);
 		return true;
 	}
-	p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (faild + gamma * maxQ);
+	p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (faild + ganna * maxQ);
 	return false;
 }
