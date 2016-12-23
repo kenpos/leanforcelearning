@@ -12,9 +12,9 @@ std::uniform_int_distribution<> makerandom(0, 100);
 
 //const以外の数値を.hで定義すると怒られるので
 int outputcount = 100000;
-double p1Qvalue[qSize][qSize][qSize][ACTION] ;
-double p2Qvalue[qSize][qSize][qSize][ACTION] ;
-unsigned int map[mapsize][mapsize] ;
+double p1Qvalue[qSize][qSize][qSize][ACTION] ={0};
+double p2Qvalue[qSize][qSize][qSize][ACTION] ={0};
+unsigned int map[mapsize][mapsize] ={0};
 
 int main() {
 //	checkExistenceOfFolder("Evaluation/");

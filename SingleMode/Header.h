@@ -6,7 +6,8 @@
 #include <string>
 #include <random>
 #include <memory.h>
-
+#include <functional>
+#include <ctime>
 //���ԋ���
 struct State {
 	int first;
@@ -26,10 +27,10 @@ const int mapsize = 15;
 const int ACTION = 5;
 const bool blindcount = true;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
 const bool checkmovenemy = false;
-const int MAXGAME = 50000000;//��
+const int MAXGAME = 50000;//��
 const int EPISODECOUNT = 500; //1�G�s�\�[�h�ӂ��ǂ̒��x
 
-const int EVALUATIONCOUNT = 10000;//���@�����̕]���G�s�\�[�h��
+const int EVALUATIONCOUNT = 10;//���@�����̕]���G�s�\�[�h��
 
 
 const int EPSILON = 40;
@@ -39,18 +40,6 @@ const double alpha = 0.1;
 const double faild = 0;
 const double rewards = 100;
 const double subrewards = 1;
-
-const std::string foldaname = "ganna" + std::to_string(ganna)
-+ "alpha" + std::to_string(alpha)
-+ "rewards" + std::to_string(rewards)
-+ "eysight" + std::to_string(eyesight)
-+ "mapsize" + std::to_string(mapsize)
-+ "MAXGAME" + std::to_string(MAXGAME)
-+ "EPISODECOUNT" + std::to_string(EPISODECOUNT)
-+ "blindcount" + std::to_string(blindcount)
-+ "checkmovenemy" + std::to_string(checkmovenemy)
-+ "EPSILON" + std::to_string(EPSILON);
-
 
 //static bool checkExistenceOfFolder(const std::string folder_name);
 void resetmap();
