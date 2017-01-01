@@ -2,7 +2,6 @@
 
 using namespace std;
 
-// �����Z���k�E�c�C�X�^�[�@�ɂ����[���������������A
 // �n�[�h�E�F�A�������V�[�h�ɂ��ď�����
 random_device seed_gen;
 mt19937 engine(seed_gen());
