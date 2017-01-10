@@ -6,24 +6,23 @@ echo "Hello, World!"
 THIS_FILE_PATH="$PWD/$0"
 echo ${THIS_FILE_PATH%/*}
 
-for i in noblindcount blindcount;
-do
-for j in moveenemy nomove;
-do
-for var in 3 7;
+#for i in noblindcount blindcount;
+#do
+#for j in moveenemy nomove;
+#do
+for var in 1 2 3 5 7;
 do
 #make folda
-dir=$i/$j/$var; [ ! -e $dir ] && mkdir -p $dir
+#dir=$i/$j/$var; [ ! -e $dir ] && mkdir -p $dir
 #cd /home/s1510037/ResrachData/$i/$j/$var/
-cd ${THIS_FILE_PATH%/*}/$i/$j/$var/
-g++ -o $i$j$var.o -std=c++11 Source.cpp Header.h
+cd ${THIS_FILE_PATH%/*}/$var/
+#g++ -o $var.o -std=c++11 Source.cpp Header.h
 #cd ${THIS_FILE_PATH%/*}/$i/$j/$var/
 #g++ -o a.o -std=c++11 Source.cpp Header.h
-#icpc -O3 -o a.o -std=c++11 Source.cpp Header.h
-
-./$i$j$var.o &
-printf "$i/$j/$var finish\n"
-done
-done
+icpc -O3 -o a.o -std=c++11 Source.cpp Header.h
+(time -a -o ./a.o) > time.txt &
+printf "$var finish\n"
+#done
+#done
 done
 printf "ALL job finish"
