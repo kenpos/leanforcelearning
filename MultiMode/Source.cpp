@@ -268,7 +268,6 @@ void EvaluationFunction(int evacount) {
     gamecount++;
   }
   evalresultfile.close();
-
 }
 
 //評価用
@@ -401,6 +400,7 @@ int getMAXQValue(State afterstate,int playernumber){
   return maxQ;
 }
 
+//Q学習
 int MultiQlearningMethod(State p1,State p2, State enemy, int gamecount)
 {
   int episodecount = 0;
@@ -449,6 +449,9 @@ int MultiQlearningMethod(State p1,State p2, State enemy, int gamecount)
       p1state.locate_enemy_count = 0;
       p1.locate_enemy_count = 0;
       p1afterstate.locate_enemy_count = 0;
+      p2state.locate_enemy_count = 0;
+      p2.locate_enemy_count = 0;
+      p2afterstate.locate_enemy_count = 0;
     }
 
     if (MAXGAME - 50 < gamecount) {

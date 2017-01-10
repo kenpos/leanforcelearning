@@ -17,12 +17,12 @@ std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
 
 // 敵X　敵Y　味方居る方向　何ターン敵を見ていないか　行動
-double p1Qvalue[qSize][qSize][PDIRECTION][qSize][ACTION] = { 0 };
-double p2Qvalue[qSize][qSize][PDIRECTION][qSize][ACTION] = { 0 };
+double p1Qvalue[qSize][qSize][PDIRECTION][MAXTURN][ACTION] = { 0 };
+double p2Qvalue[qSize][qSize][PDIRECTION][MAXTURN][ACTION] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-int outputcount =1024;
+int outputcount =pow(2,10);
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -251,8 +251,8 @@ void initializeQvalue() {
   //Q�l��0.0�ŏ�����
   for (int i = 0; i < qSize; i++) {
     for (int j = 0; j < qSize; j++) {
-      for (int n = 0; n < ACTION; n++) {
-        for (int m = 0; m < qSize; m++) {
+      for (int n = 0; n < PDIRECTION; n++) {
+        for (int m = 0; m < MAXTURN; m++) {
           for (int k = 0; k < ACTION; k++) {
             p1Qvalue[i][j][n][m][k] = 0.0;
             p2Qvalue[i][j][n][m][k] = 0.0;
@@ -272,7 +272,7 @@ void outputQvalueTable(int gamecount) {
   ofstream outputQvaldata2;
   outputQvaldata2.open("Qval/Qdata" + filename2, std::ios::app);
 
-  for (int m = 0; m < qSize; m++) {//
+  for (int m = 0; m < MAXTURN; m++) {//
     for (int n = 0; n < PDIRECTION; n++) {
       for (int i = 0; i < qSize; i++) {//
         for (int j = 0; j < qSize; j++) {//
@@ -447,6 +447,11 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     State p2state = searchRelationEnemy(p2, enemy);
     p2state.pdirection = searchPlayerDirection(p2, p1);
 
+    //���^�[�����Ă��Ȃ����Ƃ��������𔽉f�������D
+    p1.locate_enemy_count = p1state.locate_enemy_count;
+    p2.locate_enemy_count = p2state.locate_enemy_count;
+
+
     //Q�l�Ɋ��Â��s���̑I��
     int p1action = chooseAnAction(p1state, 1);
     int p2action = chooseAnAction(p2state, 2);
@@ -514,7 +519,6 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     else {
       calcFaildReward(p2state, p2action, p2maxQ, AAlpha, 2);
     }
-
     episodecount++;
   }
   return episodecount;
@@ -560,7 +564,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
     ep.first = e_eysight;
     ep.second = e_eysight;
     //�����O�̂��ߌ����ĂȂ��J�E���g���ǉ�
-    if (ep.locate_enemy_count < qSize - 1) {
+    if (ep.locate_enemy_count < MAXTURN - 1) {
       ep.locate_enemy_count++;
     }
     return ep;
@@ -568,7 +572,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
   if (abs(ep.second) > e_eysight) {
     ep.first = e_eysight;
     ep.second = e_eysight;
-    if (ep.locate_enemy_count < qSize - 1) {
+    if (ep.locate_enemy_count < MAXTURN - 1) {
       ep.locate_enemy_count++;
     }
     return ep;

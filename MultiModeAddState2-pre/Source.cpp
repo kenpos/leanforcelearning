@@ -11,15 +11,12 @@ auto dist1 = std::bind(std::uniform_int_distribution<int>(0, mapsize), std::mt19
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
 
-double p1Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
-double p2Qvalue[qSize][qSize][qSize][ACTION] = { 0 };
-
-int movedata1[mapsize][mapsize] = { 0 };
-int movedata2[mapsize][mapsize] = { 0 };
+double p1Qvalue[qSize][qSize][PDIRECTION][MAXTURN][ACTION] = { 0 };
+double p2Qvalue[qSize][qSize][PDIRECTION][MAXTURN][ACTION] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-int outputcount = 1000000;
+int outputcount = 100000;
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -35,40 +32,45 @@ string IntToString(int number)
 }
 
 int main() {
-  makeDirectory("Result");
-  makeDirectory("Evaluation");
-  makeDirectory("moveData");
-  makeDirectory("Qval");
+  makeDirectory(".\\Result");
+  makeDirectory(".\\Evaluation");
+  makeDirectory(".\\moveData");
+  makeDirectory(".\\Qval");
 
   State p1 = initState(dist1(), dist1());
-  //State p2 =  initState(dist1(engine), (int)dist1(engine));
+  State p2 =  initState(dist1(), dist1());
   State enemy = initState(dist1(), dist1());
 
   setPlayer(p1);
-  //setPlayer(p2);
+  setPlayer(p2);
   setEnemy(enemy);
 
   initializeQvalue();
   //�t�H���_���������΍쐬
+
+  ofstream resultfile;
+  string filename = "Result.txt";
+  resultfile.open("Result/" + filename, std::ios::app);
+
   int gamecount = 0;
   int episodecount = 0;
   //���C�����[�v
-  vector<int> tmpv;
   while (gamecount < MAXGAME) {
-    episodecount = SoloQlearningMethod(p1, enemy, gamecount);
+    episodecount = MultiQlearningMethod(p1, p2, enemy, gamecount);
     resetmap();
 
     while (p1.first == enemy.first && p1.second == enemy.second) {
       p1 = initState(dist1(), dist1());
+      p2 = initState(dist1(), dist1());
       enemy = initState(dist1(), dist1());
-      //	p2 = { (int)dist1(engine), (int)dist1(engine) };
     }
     setPlayer(p1);
-    //setPlayer(p2);
+    setPlayer(p2);
     setEnemy(enemy);
 
-    tmpv.push_back(episodecount);
+    resultfile << gamecount << "," << episodecount << std::endl;
 
+    //Evaluation
     if (gamecount == outputcount) {
       outputQvalueTable(gamecount);
       EvaluationFunction(gamecount);
@@ -80,34 +82,14 @@ int main() {
   }
   //Qval�̏o��
   outputQvalueTable(gamecount);
-  EvaluationFunction(gamecount);
-
-  ofstream resultfile;
-  string movedatafilename = "Result.csv";
-  resultfile.open("Result/" + movedatafilename, std::ios::app);
-  int i = 0;
-  for (auto var : tmpv)
-  {
-    resultfile << i << "," << var << std::endl;
-    i++;
-  }
   resultfile.close();
 
+
   return 0;
-
 }
-
-
-
-
 
 //Map�̏�����
 void resetmap() {
-  for (int y = 0; y < mapsize; y++) {
-    for (int x = 0; x < mapsize; x++) {
-      map[y][x] = 0;
-    }
-  }
   for (int y = 0; y < mapsize; y++) {
     for (int x = 0; x < mapsize; x++) {
       map[y][x] = 0;
@@ -160,10 +142,8 @@ bool checkNexttoEnemy(State player, State enemy) {
 
 //�G���͂ނ��Ƃ��o���Ă��邩���ׂ�
 bool checkSurroundbyPlayer(State player1, State player2, State enemy) {
-
   bool check1 = checkNexttoEnemy(player1, enemy);
   bool check2 = checkNexttoEnemy(player2, enemy);
-
   if (check1 == true && check2 == true) {
     return true;
   }
@@ -259,6 +239,7 @@ void EvaluationFunction(int evacount) {
   int gamecount = 0;
   int episodecount = 0;
   State evalp1 = initState(dist1(), dist1());
+  State evalp2 = initState(dist1(), dist1());
   State evalenemy = initState(dist1(), dist1());
 
   std::string foldaname = "Evaluation\\";
@@ -271,13 +252,15 @@ void EvaluationFunction(int evacount) {
 
   while (gamecount < EVALUATIONCOUNT) {
     setPlayer(evalp1);
+    setPlayer(evalp2);
     setEnemy(evalenemy);
 
-    episodecount = SoloQlearningEvaluationMethod(evalp1, evalenemy, gamecount, evacount);
+    episodecount = MultiQlearningEvaluationMethod(evalp1,evalp2, evalenemy, gamecount, evacount);
     resetmap();
 
     do {
       evalp1 = initState(dist1(), dist1());
+      evalp2 = initState(dist1(), dist1());
       evalenemy = initState(dist1(), dist1());
     } while (evalp1.first == evalenemy.first && evalp1.second == evalenemy.second);
 
@@ -285,11 +268,10 @@ void EvaluationFunction(int evacount) {
     gamecount++;
   }
   evalresultfile.close();
-
 }
 
 //評価用
-int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evacount)
+int MultiQlearningEvaluationMethod(State p1,State p2, State enemy, int gamecount, int evacount)
 {
   int episodecount = 0;
 
@@ -302,12 +284,19 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evac
     //視界内での状態の把握
     //敵の位置を自分との相対位置で認識
     State p1state = searchRelationEnemy(p1, enemy);
+    State p2state = searchRelationEnemy(p2, enemy);
 
     //何ターン見ていないかという情報を反映させる．
     p1.locate_enemy_count = p1state.locate_enemy_count;
+    p2.locate_enemy_count = p2state.locate_enemy_count;
+
+    //味方のいる方向を返す
+    p1state.pdirection = searchPlayerDirection(p1, p2);
+    p2state.pdirection = searchPlayerDirection(p2, p1);
 
     //Q値に基づく行動の選択
-    int p1action = chooseAnAction(p1state, 1);
+    int p1action = chooseEvalAnAction(p1state, 1);
+    int p2action = chooseEvalAnAction(p2state, 2);
 
     //ランダムにキャラクターを動かす
     if (checkmovenemy == true) {
@@ -319,46 +308,30 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evac
 
     //行動の実施
     p1 = protCharactor(p1, p1action);
+    p2 = protCharactor(p2, p2action);
 
-    //行動を実施した後の相対位置を認識
-    State p1afterstate = searchRelationEnemy(p1, enemy);
     if (blindcount == false) {
       p1state.locate_enemy_count = 0;
       p1.locate_enemy_count = 0;
-      p1afterstate.locate_enemy_count = 0;
+      p2state.locate_enemy_count = 0;
+      p2.locate_enemy_count = 0;
     }
+
     //tmpd.push_back({ p1.first,p1.second,enemy.first,enemy.second });
-    resultfile << episodecount <<","<< p1.first <<","<<p1.second << ","<< enemy.first << "," << enemy.second <<endl;
+    resultfile << episodecount <<","<<
+      p1.first <<","<<p1.second << ","<<
+      p2.first <<","<<p2.second << ","<<
+      enemy.first << "," << enemy.second <<endl;
 
     episodecount++;
-    if (checkNexttoEnemy(p1, enemy) == true) {
+    if (checkSurroundbyPlayer(p1,p2, enemy) == true) {
       break;
     }
   }
   resultfile.close();
-//		outputEvaluationMoveData(evacount, gamecount, tmpd);
-//		tmpd.clear();
+  //		outputEvaluationMoveData(evacount, gamecount, tmpd);
+  //		tmpd.clear();
   return episodecount;
-}
-
-
-void outputEvaluationMoveData(int evacount, int gamecount, vector<outputData> d) {
-
-  std::string foldaname;
-  foldaname.append(IntToString(evacount));
-
-  ofstream outputmovedata;
-  stringstream ss;
-  ss << gamecount;
-  std::string movedatafilename = ss.str() + ".csv";
-  outputmovedata.open("Evaluation/"+ foldaname + "/" + movedatafilename, std::ios::app);
-  int i = 0;
-  for (auto var : d)
-  {
-    outputmovedata << i << "," << var.first << "," << var.second << "," << var.efirst << "," << var.esecond << std::endl;
-    i++;
-  }
-  outputmovedata.close();
 }
 
 
@@ -371,169 +344,73 @@ void outputEvaluationMoveData(int evacount, int gamecount, vector<outputData> d)
 //Q�e�[�u���̏�����
 void initializeQvalue() {
   //Q�l��0.0�ŏ�����
-  for (int i = 0; i < qSize; i++) {
-    for (int j = 0; j < qSize; j++) {
-      for (int m = 0; m < qSize; m++) {
-        for (int k = 0; k < ACTION; k++) {
-          p1Qvalue[i][j][m][k] = 0.0;
-          p2Qvalue[i][j][m][k] = 0.0;
+  for (int x = 0; x < qSize; x++) {
+    for (int y = 0; y < qSize; y++) {
+      for(int direction = 0; direction < PDIRECTION; direction++)
+        for (int m = 0; m < MAXTURN; m++) {
+          for (int k = 0; k < ACTION; k++) {
+            p1Qvalue[x][y][m][direction][k] = 0.0;
+            p2Qvalue[x][y][m][direction][k] = 0.0;
+          }
         }
-      }
     }
   }
 }
 
-//���̒n�_�ɉ��񓞒B�����̂��񐔂��\������.
-//���������Ă��Ƃ���
-//void initializeMoveData() {
-//	//Q�l��0.0�ŏ�����
-//	for (int i = 0; i < mapsize; i++) {
-//		for (int j = 0; j < mapsize; j++) {
-//				movedata1[i][j] = 0;
-//				movedata2[i][j] = 0;
-//			}
-//		}
-//	}
-
-
 //Q�l�̃e�[�u�����t�@�C���ɏo�͂���
 void outputQvalueTable(int gamecount) {
+  string filename1 = IntToString(gamecount) + "p1.csv";
+  string filename2 = IntToString(gamecount) + "p2.csv";
   ofstream outputQvaldata1;
-  string filename = IntToString(gamecount) + ".csv";
+  outputQvaldata1.open("Qval/Qdata" + filename1, std::ios::app);
 
-  outputQvaldata1.open("Qval/Qdata" + filename, std::ios::app);
+  ofstream outputQvaldata2;
+  outputQvaldata2.open("Qval/Qdata" + filename2, std::ios::app);
+
   //Q�l��0.0�ŏ�����
-  for (int m = 0; m < qSize; m++) {
+  for (int direction = 0; direction < PDIRECTION; direction++) {
     for (int i = 0; i < qSize; i++) {
-
       for (int j = 0; j < qSize; j++) {
-        outputQvaldata1 << "," << p1Qvalue[i][j][m][2] << "," << ",";
-      } outputQvaldata1 << endl;
+        outputQvaldata1 << "," << p1Qvalue[i][j][direction][0][2] << "," << ",";
+        outputQvaldata2 << "," << p2Qvalue[i][j][direction][0][2] << "," << ",";
+      } outputQvaldata1 << endl; outputQvaldata2 << endl;
       for (int j = 0; j < qSize; j++) {
-        outputQvaldata1 << p1Qvalue[i][j][m][3] << "," << p1Qvalue[i][j][m][4] << "," << p1Qvalue[i][j][m][1] << ",";
-      } outputQvaldata1 << endl;
+        outputQvaldata1 << p1Qvalue[i][j][direction][0][3] << ","
+                        << p1Qvalue[i][j][direction][0][4] << ","
+                        << p1Qvalue[i][j][direction][0][1] << ",";
+        outputQvaldata2 << p2Qvalue[i][j][direction][0][3] << ","
+                        << p2Qvalue[i][j][direction][0][4] << ","
+                        << p2Qvalue[i][j][direction][0][1] << ",";
+      } outputQvaldata1 << endl; outputQvaldata2 << endl;
       for (int j = 0; j < qSize; j++) {
-        outputQvaldata1 << "," << p1Qvalue[i][j][m][0] << "," << ",";
-      } outputQvaldata1 << endl;
+        outputQvaldata1 << "," << p1Qvalue[i][j][direction][0][0] << "," << ",";
+        outputQvaldata2 << "," << p2Qvalue[i][j][direction][0][0] << "," << ",";
+      } outputQvaldata1 << endl; outputQvaldata2 << endl;
     }
     outputQvaldata1 << endl; outputQvaldata1 << endl;
+    outputQvaldata2 << endl; outputQvaldata2 << endl;
+
   }
   outputQvaldata1.close();
 }
 
-//void outputDoublePlayQvalueTable() {
-//	ofstream outputQvaldata1;
-//	ofstream outputQvaldata2;
-//	string filename1 = "p1.csv";
-//	string filename2 = "p2.csv";
-//
-//	outputQvaldata1.open(".\\" + foldaname + "\\Qval\\Qdata" + filename1, std::ios::app);
-//	outputQvaldata2.open(".\\" + foldaname + "\\Qval\\Qdata" + filename2, std::ios::app);
-//
-//	const int dx[] = { 0,1,0,-1,0 };
-//	const int dy[] = { -1,0,1,0,0 };
-//	//Q�l��0.0�ŏ�����
-//	for (int i = 0; i < qSize; i++) {
-//		for (int j = 0; j < qSize; j++) {
-//			outputQvaldata1 << "," << p1Qvalue[i][j][2] << "," <<endl;
-//			outputQvaldata1 << p1Qvalue[i][j][3] << "," << p1Qvalue[i][j][4] << "," << p1Qvalue[i][j][1] << endl;
-//			outputQvaldata1 << "," << p1Qvalue[i][j][0] << "," <<endl;
-//
-//			outputQvaldata2 << "," << p1Qvalue[i][j][2] << ",";
-//			outputQvaldata2 << p1Qvalue[i][j][3] << "," << p1Qvalue[i][j][4] << "," << p1Qvalue[i][j][1];
-//			outputQvaldata2 << "," << p1Qvalue[i][j][0] << ",";
-//		} outputQvaldata1 << endl; outputQvaldata2 << endl;
-//	}
-//
-//}
+int getMAXQValue(State afterstate,int playernumber){
+  double maxQ = 0;
+  if(playernumber == 1) {
+    int nextaction = getMaxQAction(afterstate, playernumber);    //after�ł̍ő�Q�l���o���s��
+    maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.pdirection][afterstate.locate_enemy_count][nextaction];
+  }
 
+  if(playernumber == 2) {
+    int nextaction = getMaxQAction(afterstate, playernumber);    //after�ł̍ő�Q�l���o���s��
+    maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.pdirection][afterstate.locate_enemy_count][nextaction];
+  }
 
-//1�G�s�\�[�h���Č�����.
-/*
-   (1)�G�[�W�F���g�͊��̏���s���ϑ�����
-   (2)�C�ӂ̍s���I�������C�s��a�����s����
-   (3)���������V���󂯎���
- */
-//int QlearningMethod(State p1, State p2, State enemy,int gamecount) {
-//	int episodecount = 0;
-//
-//	//ofstream outputQvaldata1;
-//	//ofstream outputQvaldata2;
-//	//ofstream outputmovecount1;
-//	//ofstream outputmovecount2;
-//	stringstream ss;
-//	ss << gamecount;
-//	//string filename1 = ss.str() + "p1.csv";
-//	//string filename2 = ss.str() + "p2.csv";
-//	string filename = ss.str() + ".csv";
-//	//
-//	//outputQvaldata1.open(".\\" + foldaname + "\\Qval\\data" + filename1 , std::ios::app);
-//	//outputQvaldata2.open(".\\" + foldaname + "\\Qval\\data" + filename2 , std::ios::app);
-//	//outputmovecount1.open(".\\" + foldaname + "\\movecount\\data" + filename1 , std::ios::app);
-//	//outputmovecount2.open(".\\" + foldaname + "\\movecount\\data" + filename2 , std::ios::app);
-//
-//	int c = 100000 + gamecount;
-//	double AAlpha = (double)100000 / c;
-//	double AttenuationAlpha = (double)alpha *AAlpha;
-//
-//	while (episodecount < EPISODECOUNT) {
-//		//���E���ł̏��Ԃ̔c��
-//		//�G�̈ʒu�������Ƃ̑��Έʒu�ŔF��
-//		State p1state = searchRelationEnemy(p1, enemy);
-//		State p2state = searchRelationEnemy(p2, enemy);
-//
-//		//Q�l�Ɋ��Â��s���̑I��
-//		int p1action = chooseAnAction(p1state,p1,1);
-//		int p2action = chooseAnAction(p2state,p2,2);
-//
-//		//�s���̎��{
-//		p1 = protCharactor(p1, p1action);
-//		movedata1[p1.first][p1.second]++;
-//		p2 = protCharactor(p2, p2action);
-//		movedata2[p2.first][p2.second]++;
-//
-//		//�s�������{�������̑��Έʒu���F��
-//		State p1afterstate = searchRelationEnemy(p1, enemy);
-//		State p2afterstate = searchRelationEnemy(p2, enemy);
-//
-//		//���V�̕t�^
-//		calcReward(p1state, p1afterstate, p1action, p1, p2, enemy, 1, AttenuationAlpha);
-//		calcReward(p2state, p2afterstate, p2action, p1, p2, enemy, 2, AttenuationAlpha);
-//
-//		//�t�@�C���o��
-//		if (MAXGAME -50 < gamecount) {
-//			ofstream outputmovedata;
-//			outputmovedata.open(".\\" + foldaname + "\\moveData\\" + filename, std::ios::app);
-//			outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << p2.first << "," << p2.second << "," << enemy.first << "," << enemy.second << std::endl;
-//		}
-//		//drawMap();
-//
-//		//�Q�[���̏C������
-//		episodecount++;
-//		if (checkSurroundbyPlayer(p1, p2, enemy) == true) {//���l�p
-//		break;
-//		}
-//	}
-//	//std::cout << "GAME:" <<gamecount << " "<< episodecount << " �I���I" << endl;
-//
-//	outputDoublePlayQvalueTable();
-//
-//	//MoveCount�̏o��
-//	//for (int i = 0; i < mapsize; i++) {
-//	//	for (int j = 0; j < mapsize; j++) {
-//	//		outputmovecount1 << movedata1[i][j] << ",";
-//	//		outputmovecount2 << movedata2[i][j] << ",";
-//	//	}
-//	//	outputmovecount1 << endl;outputmovecount2 << endl;
-//	//}
-//	//outputmovecount1 << endl;outputmovecount2 << endl;
-//		//outputmovedata.close();
-//
-//	return episodecount;
-//}
+  return maxQ;
+}
 
-
-int SoloQlearningMethod(State p1, State enemy, int gamecount)
+//Q学習
+int MultiQlearningMethod(State p1,State p2, State enemy, int gamecount)
 {
   int episodecount = 0;
 
@@ -551,15 +428,20 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
   }
 
   while (episodecount < EPISODECOUNT) {
-    //���E���ł̏��Ԃ̔c��
-    //�G�̈ʒu�������Ƃ̑��Έʒu�ŔF��
     State p1state = searchRelationEnemy(p1, enemy);
+    State p2state = searchRelationEnemy(p2, enemy);
 
-    //���^�[�����Ă��Ȃ����Ƃ��������𔽉f�������D
     p1.locate_enemy_count = p1state.locate_enemy_count;
+    p2.locate_enemy_count = p2state.locate_enemy_count;
 
+    //味方のいる方向を返す
+    p1state.pdirection = searchPlayerDirection(p1, p2);
+    p2state.pdirection = searchPlayerDirection(p2, p1);
+    //p1state.pdirection = 0;
+    //p2state.pdirection = 0;
     //Q�l�Ɋ��Â��s���̑I��
     int p1action = chooseAnAction(p1state, 1);
+    int p2action = chooseAnAction(p2state, 2);
 
     //�����_���ɃL�����N�^�[�𓮂���
     if (checkmovenemy == true) {
@@ -568,32 +450,56 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
 
     //�s���̎��{
     p1 = protCharactor(p1, p1action);
+    p2 = protCharactor(p2, p2action);
+
     //movedata1[p1.first][p1.second]++;
 
     //�s�������{�������̑��Έʒu���F��
     State p1afterstate = searchRelationEnemy(p1, enemy);
+    State p2afterstate = searchRelationEnemy(p2, enemy);
+
+    p1afterstate.pdirection = searchPlayerDirection(p1, p2);
+    p2afterstate.pdirection = searchPlayerDirection(p2, p1);
+    //p1afterstate.pdirection = 0;
+    //p2afterstate.pdirection = 0;
+
     if (blindcount == false) {
       p1state.locate_enemy_count = 0;
       p1.locate_enemy_count = 0;
       p1afterstate.locate_enemy_count = 0;
+      p2state.locate_enemy_count = 0;
+      p2.locate_enemy_count = 0;
+      p2afterstate.locate_enemy_count = 0;
     }
-    //���V�̕t�^
-    calcSoloReward(p1state, p1afterstate, p1action, p1, enemy, AAlpha);
-
-    //���X�g50�Q�[���̃t�@�C�������o��
-
 
     if (MAXGAME - 50 < gamecount) {
       outputmovedata << episodecount << "," << p1.first << "," << p1.second << "," << enemy.first << "," << enemy.second << std::endl;
       outputmovedata.close();
     }
 
-    //drawMap();
-    //�Q�[���̏C������
-    episodecount++;
-    if (checkNexttoEnemy(p1, enemy) == true) {
+    //calcReward
+    double p1maxQ = getMAXQValue(p1afterstate, 1);
+    double p2maxQ = getMAXQValue(p2afterstate, 2);
+
+    if (checkSurroundbyPlayer(p1,p2, enemy) == true) {
+      calcFinishReward(p1state, p1action, p1maxQ, AAlpha, 1);
+      calcFinishReward(p2state, p2action, p2maxQ, AAlpha, 2);
       break;
     }
+
+    if (checkNexttoEnemy(p1, enemy) == true) {
+      calcSuccessReward(p1state, p1action, p1maxQ, AAlpha, 1);
+    }else{
+      calcFaildReward(p1state, p1action, p1maxQ, AAlpha, 1);
+    }
+
+    if (checkNexttoEnemy(p2, enemy) == true) {
+      calcSuccessReward(p2state, p2action, p2maxQ, AAlpha, 2);
+    }else{
+      calcFaildReward(p2state, p2action, p2maxQ, AAlpha, 2);
+    }
+
+    episodecount++;
   }
   return episodecount;
 }
@@ -639,7 +545,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
     ep.first = eyesight;
     ep.second = eyesight;
     //�����O�̂��ߌ����ĂȂ��J�E���g���ǉ�
-    if (ep.locate_enemy_count < qSize - 1) {
+    if (ep.locate_enemy_count < MAXTURN - 1) {
       ep.locate_enemy_count++;
     }
     return ep;
@@ -647,7 +553,7 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
   if (abs(ep.second) > eyesight) {
     ep.first = eyesight;
     ep.second = eyesight;
-    if (ep.locate_enemy_count < qSize - 1) {
+    if (ep.locate_enemy_count < MAXTURN - 1) {
       ep.locate_enemy_count++;
     }
     return ep;
@@ -661,6 +567,86 @@ State searchRelationEnemy(State playerpositions, State enemypositons) {
 
   return ep;
 }
+
+int searchPlayerDirection(State myposi, State player2) {
+  int direction = 4;
+
+  State pp;
+  State tmp = { 0,0 };
+  pp.first = player2.first - myposi.first;
+  pp.second = player2.second - myposi.second;
+
+  if (myposi.first < player2.first) {
+    tmp.first = (player2.first - mapsize) - myposi.first;
+  }
+  else {
+    tmp.first = (mapsize - myposi.first) + player2.first;
+  }
+
+  //���@���G���艺
+  if (myposi.second < player2.second) {
+    tmp.second = (player2.second - mapsize) - myposi.second;
+  }
+  else {
+    tmp.second = (mapsize - myposi.second) + player2.second;
+  }
+
+  //���Βl�ŋ������v�Z����
+  if (abs(tmp.first) < abs(pp.first)) {
+    pp.first = tmp.first;
+  }
+
+  if (abs(tmp.second) < abs(pp.second)) {
+    pp.second = tmp.second;
+  }
+
+  //視界外にいた時.
+  if (abs(pp.first) > p_esight) {
+    pp.first = p_esight;
+    pp.second = p_esight;
+    return direction;
+  }
+  if (abs(pp.second) > p_esight) {
+    pp.first = p_esight;
+    pp.second = p_esight;
+    return direction;
+  }
+
+  //四方向を返すところ
+  //左右
+  if(pp.first == 0) {
+    if(pp.second < 0) {
+      return 3;
+    }
+    return 5;
+  }
+  //上下
+  if(pp.second == 0) {
+    if(pp.first < 0) {
+      return 1;
+    }
+    return 7;
+  }
+
+  //斜め方向の処理
+  //左側
+  if (pp.first < 0) {
+    if (pp.second < 0) {
+      return 0;
+    }
+    return 6;
+  }
+  //右側
+  else {
+    if (pp.second < 0) {
+      return 2;
+    }
+    return 8;
+  }
+
+  return direction;
+}
+
 
 
 //Q�l�ɂ����Č����t���������s�����I������.
@@ -681,43 +667,71 @@ int chooseAnAction(State playerstate, int playernum) {
   return action;
 }
 
+int chooseEvalAnAction(State playerstate, int playernum) {
+  int action;
+  //�ʏ��́AQ�l���ő剻�����s�����I��
+  action = getMaxQAction(playerstate, playernum);
+  return action;
+}
+
 //����state�ɂ����āA�ő���Q�l�ƂȂ��s�����Ԃ�
 int getMaxQAction(State state, int playernum) {
-  double maxQ = -1.0;
   int action = 4;
-  for (int i = 0; i < ACTION; i++) {
-    double q = p1Qvalue[state.first][state.second][state.locate_enemy_count][i];
-    //�ő�Q�l�ƂȂ��s�����L��
-    if (q > maxQ) {
-      action = i;
-      maxQ = q;
-    }
+  double maxQ = -1.0;
 
-    //else if (q == maxQ) {
-    //	int rnd = rand100(mt);
-    //	int r = rnd % 2;
-    //	if (r == 1) {
-    //		action = i;
-    //		maxQ = q;
-    //	}
-    //}
+  if(playernum == 1) {
+    for (int i = 0; i < ACTION; i++) {
+      double q = p1Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][i];
+      //�ő�Q�l�ƂȂ��s�����L��
+      if (q > maxQ) {
+        action = i;
+        maxQ = q;
+      }
+    }
+  }
+
+  if(playernum == 2) {
+    for (int i = 0; i < ACTION; i++) {
+      double q = p2Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][i];
+      //�ő�Q�l�ƂȂ��s�����L��
+      if (q > maxQ) {
+        action = i;
+        maxQ = q;
+      }
+    }
   }
   return action;
 }
 
-
-//���V�֐�
-bool calcSoloReward(State state, State afterstate, int action, State player, State enemy, long double AttenuationAlpha) {
-  double maxQ = 0;
-  //���΍��W�ňړ��������Ԃ��擾����
-  //std::Statestate =  moveCharacter(player, action);	//a���������̏���
-  //std::Stateafter = searchRelationEnemy(player, enemy); //���΍��W�ɕϊ�
-  int nextaction = getMaxQAction(afterstate, 1);     //after�ł̍ő�Q�l���o���s��
-  maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.locate_enemy_count][nextaction];  //after�ł̍ő�Q�l
-  if (checkNexttoEnemy(player, enemy) == true) {
-    p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + ganna * maxQ);
-    return true;
+bool calcSuccessReward(State state, int action,double maxQ, long double AttenuationAlpha, int playernum) {
+  if(playernum == 1) {
+    p1Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] + AttenuationAlpha* (subrewards + ganna * maxQ);
   }
-  p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (faild + ganna * maxQ);
-  return false;
+
+  if(playernum == 2) {
+    p2Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p2Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] + AttenuationAlpha* (subrewards + ganna * maxQ);
+  }
+  return true;
+}
+
+bool calcFinishReward(State state, int action,double maxQ, long double AttenuationAlpha, int playernum) {
+  if(playernum == 1) {
+    p1Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + ganna * maxQ);
+  }
+
+  if(playernum == 2) {
+    p2Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p2Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + ganna * maxQ);
+  }
+  return true;
+}
+
+bool calcFaildReward(State state, int action,double maxQ, long double AttenuationAlpha, int playernum) {
+  if(playernum == 1) {
+    p1Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] + AttenuationAlpha* (faild + ganna * maxQ);
+  }
+
+  if(playernum == 2) {
+    p2Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p2Qvalue[state.first][state.second][state.pdirection][state.locate_enemy_count][action] + AttenuationAlpha* (faild + ganna * maxQ);
+  }
+  return true;
 }

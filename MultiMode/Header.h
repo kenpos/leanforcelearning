@@ -37,7 +37,7 @@ const double ganna = 0.8;
 const double alpha = 0.1;
 const double faild = 0;
 const double rewards = 100;
-const double subrewards = 30;
+const double subrewards = 0;
 
 //const std::string foldaname = "ganna" + std::to_string(gamma)
 //+ "alpha" + std::to_string(alpha)

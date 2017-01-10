@@ -1,14 +1,3 @@
-﻿//
-//  Header.h
-//  LeanForceLearning
-//
-//  Created by nakagawakenta on 12/29/16.
-//  Copyright © 2016 nakagawakenta. All rights reserved.
-//
-
-#ifndef Header_h
-#define Header_h
-
 #include <iostream>
 #include <utility>
 #include <fstream>
@@ -34,20 +23,20 @@ struct outputData {
   int esecond;
 };
 
-const int e_eysight = 3;//���E�̍L��
-const int qSize = e_eysight * 2 + 1;//Q�l�̑傫��
-const int p_esight = 7;
-const int PDIRECTION = 8;
-//const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
 const int mapsize = 15;
+
+const int eyesight = 7;//���E�̍L��
+const int qSize = eyesight * 2 + 1;//Q�l�̑傫��
+const int p_esight = 7;
+const int PDIRECTION = 9;
 const int ACTION = 5;
 const int MAXTURN = 9;
-const bool flag_pldirection = true;
-const bool flag_blindcount = false;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
-const bool flag_movenemy = false;
-const int MAXGAME = 10000000;//��
+
+const bool blindcount = true;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
+const bool checkmovenemy = false;
+const int MAXGAME = 80000000;//��
 const int EPISODECOUNT = 2000;
-const int EVALUATIONCOUNT = 500;
+const int EVALUATIONCOUNT = 10000;
 const int EPSILON = 40;
 
 const double ganna = 0.8;
@@ -82,21 +71,18 @@ State checkCharacter(State character, int action);
 State protCharactor(State player, int action);
 void initializeQvalue();
 State searchRelationEnemy(State playerpositions, State enemypositons);
-int searchPlayerDirection(State myposi, State player2);
-
 int getMaxQAction(State state, int playernum);
 int chooseAnAction(State playerstate, int playernum);
-int chooseEvalAnAction(State playerstate, int playernum);
+int searchPlayerDirection(State myposi, State player2);
 
-int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount);
+int MultiQlearningMethod(State p1,State p2, State enemy, int gamecount);
 void outputQvalueTable(int gamecount);
-int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecount, int evacount);
+int MultiQlearningEvaluationMethod(State p1,State p2, State enemy, int gamecount, int evacount);
 void EvaluationFunction(int evacount);
+int chooseEvalAnAction(State playerstate, int playernum);
+void outputEvaluationMoveData(int evacount, int gamecount, std::vector<outputData> d);
 
-int getMAXQValue(State afterstate, int playernumber);
-bool calcSuccessReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
-bool calcFinishReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernu);
-bool calcFaildReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
-
-
-#endif /* Header_h */
+int getMAXQValue(State afterstate,int playernumber);
+bool calcSuccessReward(State state, int action,double maxQ, long double AttenuationAlpha, int playernum);
+bool calcFinishReward(State state, int action,double maxQ, long double AttenuationAlpha, int playernu);
+bool calcFaildReward(State state, int action,double maxQ, long double AttenuationAlpha, int playernum);

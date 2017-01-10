@@ -10,16 +10,16 @@
 
 //���ԋ���
 struct State {
-	int first;
-	int second;
-	int locate_enemy_count;
+  int first;
+  int second;
+  int locate_enemy_count;
 };
 
 struct outputData {
-	int first;
-	int second;
-	int efirst;
-	int esecond;
+  int first;
+  int second;
+  int efirst;
+  int esecond;
 };
 
 const int eyesight = 7;//���E�̍L��
