@@ -40,12 +40,13 @@ const int p_esight = 7;
 //const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
 const int mapsize = 15;
 const int ACTION = 5;
-const bool pldirection = true;
-const bool blindcount = true;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
-const bool checkmovenemy = true;
-const int MAXGAME = 100000000;//��
+const int PDIRECTION = 8;
+const bool flag_pldirection = true;
+const bool flag_blindcount = false;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
+const bool flag_movenemy = false;
+const int MAXGAME = 10000000;//��
 const int EPISODECOUNT = 2000;
-const int EVALUATIONCOUNT = 10000;
+const int EVALUATIONCOUNT = 500;
 const int EPSILON = 40;
 
 const double ganna = 0.8;
@@ -80,7 +81,7 @@ State checkCharacter(State character, int action);
 State protCharactor(State player, int action);
 void initializeQvalue();
 State searchRelationEnemy(State playerpositions, State enemypositons);
-int searchdirectionPlayer(State myposi, State player2);
+int searchPlayerDirection(State myposi, State player2);
 
 int getMaxQAction(State state, int playernum);
 int chooseAnAction(State playerstate, int playernum);
