@@ -1,4 +1,4 @@
-﻿//
+//
 //  main.cpp
 //  LeanForceLearning
 //
@@ -22,7 +22,7 @@ double p2Qvalue[qSize][qSize][ACTION][qSize][ACTION] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-int outputcount = 10000000;
+int outputcount = pow(2,18);
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -81,7 +81,7 @@ int main() {
       outputQvalueTable(gamecount);
       EvaluationFunction(gamecount);
       //桁が一つ上がる度に記録する
-      outputcount = outputcount * 10;
+      outputcount = outputcount * 2;
     }
     gamecount++;
   }
