@@ -22,7 +22,7 @@ double p2Qvalue[qSize][qSize][ACTION][qSize][ACTION] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-int outputcount = pow(2,18);
+int outputcount = 100000;
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -81,7 +81,7 @@ int main() {
       outputQvalueTable(gamecount);
       EvaluationFunction(gamecount);
       //桁が一つ上がる度に記録する
-      outputcount = outputcount * 2;
+      outputcount = outputcount * 10;
     }
     gamecount++;
   }
@@ -274,29 +274,26 @@ void outputQvalueTable(int gamecount) {
 
   double p1Qvalue[qSize][qSize][ACTION][qSize][ACTION] = { 0 };
 
-  for (int m = 0; m < qSize; m++) {
-    for (int n = 0; n < ACTION; n++) {
-      for (int i = 0; i < qSize; i++) {
-        for (int j = 0; j < qSize; j++) {
-          outputQvaldata1 << "," << p1Qvalue[i][j][n][m][2] << "," << ",";
-          outputQvaldata2 << "," << p2Qvalue[i][j][n][m][2] << "," << ",";
-        } outputQvaldata1 << endl; outputQvaldata2 << endl;
-        for (int j = 0; j < qSize; j++) {
-          outputQvaldata1 << p1Qvalue[i][j][m][3] << "," << p1Qvalue[i][j][m][4] << "," << p1Qvalue[i][j][m][1] << ",";
-          outputQvaldata2 << p2Qvalue[i][j][m][3] << "," << p2Qvalue[i][j][m][4] << "," << p2Qvalue[i][j][m][1] << ",";
-        } outputQvaldata1 << endl;
-        outputQvaldata2 << endl;
-        for (int j = 0; j < qSize; j++) {
-          outputQvaldata1 << "," << p1Qvalue[i][j][m][0] << "," << ",";
-          outputQvaldata2 << "," << p2Qvalue[i][j][m][0] << "," << ",";
-        } outputQvaldata1 << endl;
-        outputQvaldata2 << endl;
-      }
-      outputQvaldata1 << endl; outputQvaldata1 << endl;
-      outputQvaldata2 << endl; outputQvaldata2 << endl;
-    } outputQvaldata1 << endl; outputQvaldata1 << endl;
+  for (int n = 0; n < ACTION; n++) {
+    for (int i = 0; i < qSize; i++) {
+      for (int j = 0; j < qSize; j++) {
+        outputQvaldata1 << "," << p1Qvalue[i][j][n][0][2] << "," << ",";
+        outputQvaldata2 << "," << p2Qvalue[i][j][n][0][2] << "," << ",";
+      } outputQvaldata1 << endl; outputQvaldata2 << endl;
+      for (int j = 0; j < qSize; j++) {
+        outputQvaldata1 << p1Qvalue[i][j][n][0][3] << "," << p1Qvalue[i][j][n][0][4] << "," << p1Qvalue[i][j][n][0][1] << ",";
+        outputQvaldata2 << p2Qvalue[i][j][n][0][3] << "," << p2Qvalue[i][j][n][0][4] << "," << p2Qvalue[i][j][n][0][1] << ",";
+      } outputQvaldata1 << endl;
+      outputQvaldata2 << endl;
+      for (int j = 0; j < qSize; j++) {
+        outputQvaldata1 << "," << p1Qvalue[i][j][n][0][0] << "," << ",";
+        outputQvaldata2 << "," << p2Qvalue[i][j][n][0][0] << "," << ",";
+      } outputQvaldata1 << endl;
+      outputQvaldata2 << endl;
+    }
+    outputQvaldata1 << endl; outputQvaldata1 << endl;
     outputQvaldata2 << endl; outputQvaldata2 << endl;
-  }
+  } outputQvaldata1 << endl; outputQvaldata1 << endl;
   outputQvaldata1.close();
   outputQvaldata2.close();
 }

@@ -24,11 +24,12 @@ struct outputData {
 
 const int eyesight = 7;//���E�̍L��
 const int qSize = eyesight * 2 + 1;//Q�l�̑傫��
+const int p_esight = 3;
 const int mapsize = 15;
 const int ACTION = 5;
 const bool blindcount = false;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
-const bool checkmovenemy = false;
-const int MAXGAME = 200000;//��
+const std::string checkmovenemy ="";  //ESCAPE // RANDOM // NULL
+const int MAXGAME = 2000;//��
 const int EPISODECOUNT = 500;
 const int EVALUATIONCOUNT = 10000;
 const int EPSILON = 40;
@@ -37,7 +38,7 @@ const double ganna = 0.8;
 const double alpha = 0.1;
 const double faild = 0;
 const double rewards = 100;
-const double subrewards = 1;
+const double subrewards = 0;
 
 //const std::string foldaname = "ganna" + std::to_string(gamma)
 //+ "alpha" + std::to_string(alpha)
@@ -68,6 +69,9 @@ int getMaxQAction(State state, int playernum);
 int chooseAnAction(State playerstate, int playernum);
 //int QlearningMethod(State p1, State p2, State enemy, int gamecount);
 int SoloQlearningMethod(State p1, State enemy, int gamecount);
+int SoloMoveMethod(State p1, State enemy, int gamecount);
+int searchPlayerDirection(State myposi, State player2);
+int escapeEnemyAction(State enemy, State p1);
 bool calcSoloReward(State state, State afterstate, int action, State player, State enemy, long double AttenuationAlpha);
 //bool calcReward(State state, State afterstate, int action, State player, State player2, State enemy, int playernumber, long double AttenuationAlpha);
 State initState(int, int);

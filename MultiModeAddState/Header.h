@@ -1,4 +1,4 @@
-﻿//
+//
 //  Header.h
 //  LeanForceLearning
 //
@@ -36,14 +36,14 @@ struct outputData {
 
 const int e_eysight = 7;//���E�̍L��
 const int qSize = e_eysight * 2 + 1;//Q�l�̑傫��
-const int p_esight = 3;
+const int p_esight = 7;
 //const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
 const int mapsize = 15;
 const int ACTION = 5;
 const bool pldirection = true;
 const bool blindcount = false;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
 const bool checkmovenemy = false;
-const int MAXGAME = 10000000;//��
+const int MAXGAME = 1000000;//��
 const int EPISODECOUNT = 2000;
 const int EVALUATIONCOUNT = 10000;
 const int EPSILON = 40;

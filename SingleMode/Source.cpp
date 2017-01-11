@@ -7,6 +7,8 @@ using namespace std;
 random_device seed_gen;
 mt19937 engine(seed_gen());
 auto dist1 = std::bind(std::uniform_int_distribution<int>(0, mapsize), std::mt19937(static_cast<unsigned int>(time(nullptr))));
+auto tworand = std::bind(std::uniform_int_distribution<int>(0, 1), std::mt19937(static_cast<unsigned int>(time(nullptr))));
+
 //std::uniform_int_distribution<> dist1(0, mapsize);
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
@@ -55,7 +57,9 @@ int main() {
   //���C�����[�v
   vector<int> tmpv;
   while (gamecount < MAXGAME) {
+    cout << "GAMECOUNT"<< gamecount <<endl;
     episodecount = SoloQlearningMethod(p1, enemy, gamecount);
+    //episodecount = SoloMoveMethod(p1, enemy, gamecount);
     resetmap();
 
     while (p1.first == enemy.first && p1.second == enemy.second) {
@@ -97,17 +101,8 @@ int main() {
 
 }
 
-
-
-
-
 //Map�̏�����
 void resetmap() {
-  for (int y = 0; y < mapsize; y++) {
-    for (int x = 0; x < mapsize; x++) {
-      map[y][x] = 0;
-    }
-  }
   for (int y = 0; y < mapsize; y++) {
     for (int x = 0; x < mapsize; x++) {
       map[y][x] = 0;
@@ -296,7 +291,7 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evac
   //vector<outputData> tmpd;
   ofstream resultfile;
   string filename = IntToString(gamecount) + ".csv";
-  resultfile.open("Evaluation/" + IntToString(evacount) +"/"+ filename, std::ios::app);
+  resultfile.open("Evaluation/" + IntToString(evacount) + "/" + filename, std::ios::app);
 
   while (episodecount < EPISODECOUNT) {
     //視界内での状態の把握
@@ -310,8 +305,14 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evac
     int p1action = chooseAnAction(p1state, 1);
 
     //ランダムにキャラクターを動かす
-    if (checkmovenemy == true) {
+    if (checkmovenemy == "RANDOM") {
       enemy = protEnemyCharactor(enemy, action(engine));
+    }
+    else if (checkmovenemy == "ESCAPE") {
+      int ea = escapeEnemyAction(enemy, p1);
+      enemy = protEnemyCharactor(enemy, ea);
+      cout << "escape : " << ea << endl;
+
     }
     else {
       enemy = protEnemyCharactor(enemy, 4);
@@ -328,7 +329,7 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evac
       p1afterstate.locate_enemy_count = 0;
     }
     //tmpd.push_back({ p1.first,p1.second,enemy.first,enemy.second });
-    resultfile << episodecount <<","<< p1.first <<","<<p1.second << ","<< enemy.first << "," << enemy.second <<endl;
+    resultfile << episodecount << "," << p1.first << "," << p1.second << "," << enemy.first << "," << enemy.second << endl;
 
     episodecount++;
     if (checkNexttoEnemy(p1, enemy) == true) {
@@ -336,8 +337,8 @@ int SoloQlearningEvaluationMethod(State p1, State enemy, int gamecount, int evac
     }
   }
   resultfile.close();
-//		outputEvaluationMoveData(evacount, gamecount, tmpd);
-//		tmpd.clear();
+  //		outputEvaluationMoveData(evacount, gamecount, tmpd);
+  //		tmpd.clear();
   return episodecount;
 }
 
@@ -351,7 +352,7 @@ void outputEvaluationMoveData(int evacount, int gamecount, vector<outputData> d)
   stringstream ss;
   ss << gamecount;
   std::string movedatafilename = ss.str() + ".csv";
-  outputmovedata.open("Evaluation/"+ foldaname + "/" + movedatafilename, std::ios::app);
+  outputmovedata.open("Evaluation/" + foldaname + "/" + movedatafilename, std::ios::app);
   int i = 0;
   for (auto var : d)
   {
@@ -533,8 +534,159 @@ void outputQvalueTable(int gamecount) {
 //}
 
 
+int SoloMoveMethod(State p1, State enemy, int gamecount) {
+  int episodecount = 0;
+  int a = 0;
+  int ea = 4;
+  while (episodecount < EPISODECOUNT) {
+    cin >> a;
+    ea = escapeEnemyAction(enemy, p1);
+    enemy = protEnemyCharactor(enemy, ea);
+    p1 = protCharactor(p1, a);
+    drawMap();
+
+    if (checkNexttoEnemy(p1, enemy) == true) {
+      break;
+    }
+  }
+  return episodecount;
+}
+
+//自機から逃げるように移動する
+int escapeEnemyAction(State enemy, State p1) {
+  cout << "escapeEnemyAction" << endl;
+  int tmp = searchPlayerDirection(enemy, p1);
+  cout << tmp << endl;
+
+  int rand = tworand();
+  int eaction = 4;
+  switch (tmp) {
+  case 2:
+    return 3; //up;
+    break;
+  case 4:
+    return 2;//right;
+    break;
+  case 6:
+    return 0;//left
+    break;
+  case 8:
+    return 1;//down
+    break;
+
+  case 1:
+    if (rand == 0) {
+      return 3;  //right or up;
+    }
+    return 2;
+    break;
+  case 3:
+    if (rand == 0) {
+      return 3; //right or up;
+    }
+    return 0;  //left or up;
+    break;
+  case 7:
+    if (rand == 0) {
+      return 1; //right or up;
+    }
+    return 2;  //right or down
+    break;
+  case 9:
+    if (rand == 0) {
+      return 1; //right or up;
+    }
+    return 0;  //left or down
+    break;
+  }
+  return eaction;
+}
+
+
+int searchPlayerDirection(State myposi, State player2) {
+  int direction = 5;
+
+  State pp;
+  State tmp = { 0,0 };
+  pp.first = player2.first - myposi.first;
+  pp.second = player2.second - myposi.second;
+
+  if (myposi.first < player2.first) {
+    tmp.first = (player2.first - mapsize) - myposi.first;
+  }
+  else {
+    tmp.first = (mapsize - myposi.first) + player2.first;
+  }
+
+  //���@���G���艺
+  if (myposi.second < player2.second) {
+    tmp.second = (player2.second - mapsize) - myposi.second;
+  }
+  else {
+    tmp.second = (mapsize - myposi.second) + player2.second;
+  }
+
+  //���Βl�ŋ������v�Z����
+  if (abs(tmp.first) < abs(pp.first)) {
+    pp.first = tmp.first;
+  }
+
+  if (abs(tmp.second) < abs(pp.second)) {
+    pp.second = tmp.second;
+  }
+
+  //視界外にいた時.
+  if (abs(pp.first) >= p_esight) {
+    pp.first = p_esight;
+    pp.second = p_esight;
+    return direction;
+  }
+  if (abs(pp.second) >= p_esight) {
+    pp.first = p_esight;
+    pp.second = p_esight;
+    return direction;
+  }
+
+  //四方向を返すところ
+  //左右
+  if (pp.first == 0) {
+    if (pp.second < 0) {
+      return 4;
+    }
+    return 6;
+  }
+  //上下
+  if (pp.second == 0) {
+    if (pp.first < 0) {
+      return 8;
+    }
+    return 2;
+  }
+
+  //斜め方向の処理
+  //左側
+  if (pp.first < 0) {
+    if (pp.second < 0) {
+      return 7;
+    }
+    return 9;
+  }
+  //右側
+  else {
+    if (pp.second < 0) {
+      return 1;
+    }
+    return 3;
+  }
+
+  return direction;
+}
+
+
+
 int SoloQlearningMethod(State p1, State enemy, int gamecount)
 {
+  cout <<"1" << endl;
   int episodecount = 0;
 
   ofstream outputmovedata;
@@ -545,6 +697,7 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
   int c = 100000 + gamecount;
   double AttenuationAlpha = (double)100000 / (double)c;
   double AAlpha = (double)alpha *AttenuationAlpha;
+  cout <<"2" << endl;
 
   if (MAXGAME - 50 < gamecount) {
     outputmovedata.open("moveData/" + movedatafilename, std::ios::app);
@@ -554,21 +707,29 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
     //���E���ł̏��Ԃ̔c��
     //�G�̈ʒu�������Ƃ̑��Έʒu�ŔF��
     State p1state = searchRelationEnemy(p1, enemy);
-
-    //���^�[�����Ă��Ȃ����Ƃ��������𔽉f�������D
     p1.locate_enemy_count = p1state.locate_enemy_count;
+    cout <<"3" << endl;
+    cout <<"X:" <<enemy.first <<"Y"<< enemy.second << endl;
 
     //Q�l�Ɋ��Â��s���̑I��
-    int p1action = chooseAnAction(p1state, 1);
-
-    //�����_���ɃL�����N�^�[�𓮂���
-    if (checkmovenemy == true) {
+    if (checkmovenemy == "RANDOM") {
       enemy = protEnemyCharactor(enemy, action(engine));
     }
+    else if (checkmovenemy == "ESCAPE") {
+      int ea = escapeEnemyAction(enemy, p1);
+      enemy = protEnemyCharactor(enemy, ea);
+    }
+    else {
+      enemy = protEnemyCharactor(enemy, 4);
+      cout <<"3b" << endl;
+    }
+    cout <<"4" << endl;
 
     //�s���̎��{
+    int p1action = chooseAnAction(p1state, 1);
     p1 = protCharactor(p1, p1action);
     //movedata1[p1.first][p1.second]++;
+    cout <<"5" << endl;
 
     //�s�������{�������̑��Έʒu���F��
     State p1afterstate = searchRelationEnemy(p1, enemy);
@@ -577,8 +738,11 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
       p1.locate_enemy_count = 0;
       p1afterstate.locate_enemy_count = 0;
     }
+    cout <<"6" << endl;
+
     //���V�̕t�^
     calcSoloReward(p1state, p1afterstate, p1action, p1, enemy, AAlpha);
+    cout <<"7" << endl;
 
     //���X�g50�Q�[���̃t�@�C�������o��
 
@@ -592,6 +756,8 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount)
     //�Q�[���̏C������
     episodecount++;
     if (checkNexttoEnemy(p1, enemy) == true) {
+      cout <<"8" << endl;
+
       break;
     }
   }
@@ -712,8 +878,8 @@ bool calcSoloReward(State state, State afterstate, int action, State player, Sta
   //���΍��W�ňړ��������Ԃ��擾����
   //std::Statestate =  moveCharacter(player, action);	//a���������̏���
   //std::Stateafter = searchRelationEnemy(player, enemy); //���΍��W�ɕϊ�
-  int nextaction = getMaxQAction(afterstate, 1);     //after�ł̍ő�Q�l���o���s��
-  maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.locate_enemy_count][nextaction];  //after�ł̍ő�Q�l
+  int nextaction = getMaxQAction(afterstate, 1);    //after�ł̍ő�Q�l���o���s��
+  maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.locate_enemy_count][nextaction]; //after�ł̍ő�Q�l
   if (checkNexttoEnemy(player, enemy) == true) {
     p1Qvalue[state.first][state.second][state.locate_enemy_count][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.locate_enemy_count][action] + AttenuationAlpha* (rewards + ganna * maxQ);
     return true;
