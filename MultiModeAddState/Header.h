@@ -88,8 +88,9 @@ int chooseEvalAnAction(State playerstate, int playernum);
 
 int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount);
 void outputQvalueTable(int gamecount);
+int MultiQlearningEvaluationMethods(State p1, State p2, State enemy);
 int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecount, int evacount);
-void EvaluationFunction(int evacount);
+void EvaluationFunction(int evacount,int num);
 
 int getMAXQValue(State afterstate, int playernumber);
 bool calcSuccessReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);

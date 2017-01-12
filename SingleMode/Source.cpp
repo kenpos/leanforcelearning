@@ -58,8 +58,8 @@ int main() {
   vector<int> tmpv;
   while (gamecount < MAXGAME) {
     cout << "GAMECOUNT"<< gamecount <<endl;
-    episodecount = SoloQlearningMethod(p1, enemy, gamecount);
-    //episodecount = SoloMoveMethod(p1, enemy, gamecount);
+    //episodecount = SoloQlearningMethod(p1, enemy, gamecount);
+    episodecount = SoloMoveMethod(p1, enemy, gamecount);
     resetmap();
 
     while (p1.first == enemy.first && p1.second == enemy.second) {
@@ -636,12 +636,12 @@ int searchPlayerDirection(State myposi, State player2) {
   }
 
   //視界外にいた時.
-  if (abs(pp.first) >= p_esight) {
+  if (abs(pp.first) > p_esight) {
     pp.first = p_esight;
     pp.second = p_esight;
     return direction;
   }
-  if (abs(pp.second) >= p_esight) {
+  if (abs(pp.second) > p_esight) {
     pp.first = p_esight;
     pp.second = p_esight;
     return direction;

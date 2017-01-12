@@ -1,11 +1,3 @@
-//
-//  main.cpp
-//  LeanForceLearning
-//
-//  Created by nakagawakenta on 12/29/16.
-//  Copyright © 2016 nakagawakenta. All rights reserved.
-//
-
 #include "Header.h"
 using namespace std;
 
@@ -22,7 +14,7 @@ double p2Qvalue[qSize][qSize][ACTION][qSize][ACTION] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-int outputcount = 100000;
+int outputcount = 20 *pow(2,12);
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -40,7 +32,6 @@ string IntToString(int number)
 int main() {
   makeDirectory(".\\Result");
   makeDirectory(".\\Evaluation");
-  makeDirectory(".\\moveData");
   makeDirectory(".\\Qval");
 
   State p1 = initState(dist1(), dist1());
@@ -58,6 +49,7 @@ int main() {
   string filename = "Result.txt";
   resultfile.open("Result/" + filename, std::ios::app);
 
+
   int gamecount = 0;
   int episodecount = 0;
   //���C�����[�v
@@ -74,22 +66,21 @@ int main() {
     setPlayer(p2);
     setEnemy(enemy);
 
-    resultfile << gamecount << "," << episodecount << std::endl;
-
     //Evaluation
     if (gamecount == outputcount) {
-      outputQvalueTable(gamecount);
-      EvaluationFunction(gamecount);
+      //outputQvalueTable(gamecount);
+      EvaluationFunction(gamecount,0);
+      //evalcount = MultiQlearningEvaluationMethod(p1, p2, enemy);
       //桁が一つ上がる度に記録する
-      outputcount = outputcount * 10;
+      outputcount = outputcount * 2;
     }
+    resultfile << gamecount << "," << episodecount << std::endl;
     gamecount++;
   }
   //Qval�̏o��
   outputQvalueTable(gamecount);
-  EvaluationFunction(gamecount);
+  EvaluationFunction(gamecount,1);
   resultfile.close();
-
 
   return 0;
 }
@@ -272,8 +263,6 @@ void outputQvalueTable(int gamecount) {
   ofstream outputQvaldata2;
   outputQvaldata2.open("Qval/Qdata" + filename2, std::ios::app);
 
-  double p1Qvalue[qSize][qSize][ACTION][qSize][ACTION] = { 0 };
-
   for (int n = 0; n < ACTION; n++) {
     for (int i = 0; i < qSize; i++) {
       for (int j = 0; j < qSize; j++) {
@@ -313,27 +302,30 @@ int getMAXQValue(State afterstate, int playernumber) {
   return maxQ;
 }
 
-void EvaluationFunction(int evacount) {
-  int gamecount = 0;
-  int episodecount = 0;
+void EvaluationFunction(int evacount,int num) {
+  int evagamecount = 0;
+  int evaepisodecount = 0;
   State evalp1 = initState(dist1(), dist1());
   State evalp2 = initState(dist1(), dist1());
   State evalenemy = initState(dist1(), dist1());
 
-  std::string foldaname = ".\\Evaluation\\";
+  std::string foldaname = ".\\Result\\";
   foldaname.append(IntToString(evacount));
   makeDirectory(foldaname);
 
   ofstream evalresultfile;
-  string evalfilename = "Result.txt";
-  evalresultfile.open("Evaluation\\" + IntToString(evacount) + "\\" + evalfilename, std::ios::app);
+  string evalfilename = "EvaluationResult.txt";
+  evalresultfile.open("Result\\" + IntToString(evacount) + "\\" + evalfilename, std::ios::app);
 
-  while (gamecount < EVALUATIONCOUNT) {
+  while (evagamecount < EVALUATIONCOUNT) {
     setPlayer(evalp1);
     setPlayer(evalp2);
     setEnemy(evalenemy);
-
-    episodecount = MultiQlearningEvaluationMethod(evalp1, evalp2, evalenemy, gamecount, evacount);
+    if(num == 1) {
+      evaepisodecount = MultiQlearningEvaluationMethod(evalp1, evalp2, evalenemy, evagamecount, evacount);
+    }else{
+      evaepisodecount = MultiQlearningEvaluationMethods(evalp1, evalp2, evalenemy);
+    }
     resetmap();
 
     do {
@@ -342,35 +334,39 @@ void EvaluationFunction(int evacount) {
       evalenemy = initState(dist1(), dist1());
     } while (evalp1.first == evalenemy.first && evalp1.second == evalenemy.second);
 
-    evalresultfile << gamecount << "," << episodecount << std::endl;
-    gamecount++;
+    evalresultfile << evagamecount << "," << evaepisodecount << std::endl;
+    evagamecount++;
   }
   evalresultfile.close();
 }
 
 
-
-//評価用
-int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecount, int evacount)
+int MultiQlearningEvaluationMethod(State p1, State p2, State enemy)
 {
   int episodecount = 0;
-
-  //vector<outputData> tmpd;
-  ofstream resultfile;
-  string filename = IntToString(gamecount) + ".csv";
-  resultfile.open("Evaluation\\" + IntToString(evacount) + "\\" + filename, std::ios::app);
-
   while (episodecount < EPISODECOUNT) {
     //視界内での状態の把握
     //敵の位置を自分との相対位置で認識
     State p1state = searchRelationEnemy(p1, enemy);
-    p1state.pdirection = searchdirectionPlayer(p1, p2);
     State p2state = searchRelationEnemy(p2, enemy);
-    p2state.pdirection = searchdirectionPlayer(p2, p1);
+
+    //味方のいる方向を取得
+    if(pldirection == true) {
+      p1state.pdirection = searchdirectionPlayer(p1, p2);
+      p2state.pdirection = searchdirectionPlayer(p2, p1);
+    }else{
+      p1state.pdirection = 0;
+      p2state.pdirection = 0;
+    }
 
     //何ターン見ていないかという情報を反映させる．
-    p1.locate_enemy_count = p1state.locate_enemy_count;
-    p2.locate_enemy_count = p2state.locate_enemy_count;
+    if(blindcount == true) {
+      p1.locate_enemy_count = p1state.locate_enemy_count;
+      p2.locate_enemy_count = p2state.locate_enemy_count;
+    }else{
+      p1.locate_enemy_count = 0;
+      p2.locate_enemy_count = 0;
+    }
 
     //Q値に基づく行動の選択
     int p1action = chooseEvalAnAction(p1state, 1);
@@ -388,19 +384,123 @@ int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecoun
     p1 = protCharactor(p1, p1action);
     p2 = protCharactor(p2, p2action);
 
-    if (blindcount == false) {
-      p1state.locate_enemy_count = 0;
+    //終了判定
+    if (checkSurroundbyPlayer(p1, p2, enemy) == true) {
+      break;
+    }
+    episodecount++;
+
+  }
+  return episodecount;
+}
+
+
+//評価用
+int MultiQlearningEvaluationMethods(State p1, State p2, State enemy)
+{
+  int episodecount = 0;
+
+  while (episodecount < EPISODECOUNT) {
+    //視界内での状態の把握
+    //敵の位置を自分との相対位置で認識
+    State p1state = searchRelationEnemy(p1, enemy);
+    State p2state = searchRelationEnemy(p2, enemy);
+    if(pldirection == true) {
+      p1state.pdirection = searchdirectionPlayer(p1, p2);
+      p2state.pdirection = searchdirectionPlayer(p2, p1);
+    }else{
+      p1state.pdirection = 0;
+      p2state.pdirection = 0;
+    }
+
+    //何ターン見ていないかという情報を反映させる．
+    if(blindcount == true) {
+      p1.locate_enemy_count = p1state.locate_enemy_count;
+      p2.locate_enemy_count = p2state.locate_enemy_count;
+    }else{
       p1.locate_enemy_count = 0;
-      p2state.locate_enemy_count = 0;
       p2.locate_enemy_count = 0;
     }
 
-    if (pldirection == false) {
-      p1state.pdirection = 4;
-      p1.pdirection = 4;
-      p2state.pdirection = 4;
-      p2.pdirection = 4;
+    //Q値に基づく行動の選択
+    int p1action = chooseEvalAnAction(p1state, 1);
+    int p2action = chooseEvalAnAction(p2state, 2);
+
+    //ランダムにキャラクターを動かす
+    if (checkmovenemy == true) {
+      enemy = protEnemyCharactor(enemy, action(engine));
     }
+    else {
+      enemy = protEnemyCharactor(enemy, 4);
+    }
+
+    //行動の実施
+    p1 = protCharactor(p1, p1action);
+    p2 = protCharactor(p2, p2action);
+
+    //終了判定
+    if (checkSurroundbyPlayer(p1, p2, enemy) == true) {
+      break;
+    }
+
+    episodecount++;
+
+  }
+  //outputEvaluationMoveData(evacount, gamecount, tmpd);
+  //tmpd.clear();
+  return episodecount;
+}
+
+
+//評価用
+int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecount, int evacount)
+{
+  int episodecount = 0;
+
+  //vector<outputData> tmpd;
+  ofstream resultfile;
+  string filename = IntToString(gamecount) + ".csv";
+  resultfile.open("Result\\" + IntToString(evacount) + "\\" + filename, std::ios::app);
+
+  while (episodecount < EPISODECOUNT) {
+    //視界内での状態の把握
+    //敵の位置を自分との相対位置で認識
+    State p1state = searchRelationEnemy(p1, enemy);
+    State p2state = searchRelationEnemy(p2, enemy);
+    if(pldirection == true) {
+      p1state.pdirection = searchdirectionPlayer(p1, p2);
+      p2state.pdirection = searchdirectionPlayer(p2, p1);
+    }else{
+      p1state.pdirection = 0;
+      p2state.pdirection = 0;
+    }
+
+
+    //何ターン見ていないかという情報を反映させる．
+    if(blindcount == true) {
+      p1.locate_enemy_count = p1state.locate_enemy_count;
+      p2.locate_enemy_count = p2state.locate_enemy_count;
+    }else{
+      p1.locate_enemy_count = 0;
+      p2.locate_enemy_count = 0;
+    }
+
+    //Q値に基づく行動の選択
+    int p1action = chooseEvalAnAction(p1state, 1);
+    int p2action = chooseEvalAnAction(p2state, 2);
+
+    //ランダムにキャラクターを動かす
+    if (checkmovenemy == true) {
+      enemy = protEnemyCharactor(enemy, action(engine));
+    }
+    else {
+      enemy = protEnemyCharactor(enemy, 4);
+    }
+
+    //行動の実施
+    p1 = protCharactor(p1, p1action);
+    p2 = protCharactor(p2, p2action);
+
 
 
     //tmpd.push_back({ p1.first,p1.second,enemy.first,enemy.second });
@@ -409,10 +509,13 @@ int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecoun
       p2.first << "," << p2.second << "," <<
       enemy.first << "," << enemy.second << endl;
 
-    episodecount++;
+    //終了判定
     if (checkSurroundbyPlayer(p1, p2, enemy) == true) {
       break;
     }
+
+    episodecount++;
+
   }
   resultfile.close();
   //outputEvaluationMoveData(evacount, gamecount, tmpd);
@@ -441,10 +544,24 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
 
   while (episodecount < EPISODECOUNT) {
     State p1state = searchRelationEnemy(p1, enemy);
-    p1state.pdirection = searchdirectionPlayer(p1, p2);
-
     State p2state = searchRelationEnemy(p2, enemy);
-    p2state.pdirection = searchdirectionPlayer(p2, p1);
+
+    if(pldirection == true) {
+      p1state.pdirection = searchdirectionPlayer(p1, p2);
+      p2state.pdirection = searchdirectionPlayer(p2, p1);
+    }else{
+      p1state.pdirection = 0;
+      p2state.pdirection = 0;
+    }
+    //何ターン見ていないかという情報を反映させる．
+    if(blindcount == true) {
+      p1.locate_enemy_count = p1state.locate_enemy_count;
+      p2.locate_enemy_count = p2state.locate_enemy_count;
+    }else{
+      p1.locate_enemy_count = 0;
+      p2.locate_enemy_count = 0;
+    }
+
 
     //Q�l�Ɋ��Â��s���̑I��
     int p1action = chooseAnAction(p1state, 1);
@@ -476,12 +593,12 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     }
 
     if (pldirection == false) {
-      p1state.pdirection = 4;
-      p1.pdirection = 4;
-      p1afterstate.pdirection = 4;
-      p2state.pdirection = 4;
-      p2.pdirection = 4;
-      p2afterstate.pdirection = 4;
+      p1state.pdirection = 0;
+      p1.pdirection = 0;
+      p1afterstate.pdirection = 0;
+      p2state.pdirection = 0;
+      p2.pdirection = 0;
+      p2afterstate.pdirection = 0;
     }
 
 
@@ -498,21 +615,24 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
       calcFinishReward(p1state, p1action, p1maxQ, AAlpha, 1);
       calcFinishReward(p2state, p2action, p2maxQ, AAlpha, 2);
       break;
-    }
-
-    if (checkNexttoEnemy(p1, enemy) == true) {
-      calcSuccessReward(p1state, p1action, p1maxQ, AAlpha, 1);
-    }
-    else {
+    }else{
       calcFaildReward(p1state, p1action, p1maxQ, AAlpha, 1);
-    }
-
-    if (checkNexttoEnemy(p2, enemy) == true) {
-      calcSuccessReward(p2state, p2action, p2maxQ, AAlpha, 2);
-    }
-    else {
       calcFaildReward(p2state, p2action, p2maxQ, AAlpha, 2);
     }
+
+    //if (checkNexttoEnemy(p1, enemy) == true) {
+    //  calcSuccessReward(p1state, p1action, p1maxQ, AAlpha, 1);
+    //}
+    //else {
+    //  calcFaildReward(p1state, p1action, p1maxQ, AAlpha, 1);
+    //}
+
+    //if (checkNexttoEnemy(p2, enemy) == true) {
+    //  calcSuccessReward(p2state, p2action, p2maxQ, AAlpha, 2);
+    //}
+    //else {
+    //  calcFaildReward(p2state, p2action, p2maxQ, AAlpha, 2);
+    //}
 
     episodecount++;
   }
