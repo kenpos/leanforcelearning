@@ -12,6 +12,8 @@ using namespace std;
 random_device seed_gen;
 mt19937 engine(seed_gen());
 auto dist1 = std::bind(std::uniform_int_distribution<int>(0, mapsize), std::mt19937(static_cast<unsigned int>(time(nullptr))));
+auto tworand = std::bind(std::uniform_int_distribution<int>(0, 1), std::mt19937(static_cast<unsigned int>(time(nullptr))));
+
 //std::uniform_int_distribution<> dist1(0, mapsize);
 std::uniform_int_distribution<> action(0, ACTION);
 std::uniform_int_distribution<> makerandom(0, 100);
@@ -22,7 +24,7 @@ double p2Qvalue[qSize][qSize][PDIRECTION][qSize][ACTION] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-int outputcount = pow(2,18);
+int outputcount = pow(2,0);
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -62,7 +64,8 @@ int main() {
   int episodecount = 0;
   //���C�����[�v
   while (gamecount < MAXGAME) {
-    episodecount = MultiQlearningMethod(p1, p2, enemy, gamecount);
+    //episodecount = MultiQlearningMethod(p1, p2, enemy, gamecount);
+    episodecount = MultiMoveMethod(p1, p2, enemy,gamecount);
     resetmap();
 
     while (p1.first == enemy.first && p1.second == enemy.second) {
@@ -94,6 +97,31 @@ int main() {
   return 0;
 }
 
+//自分で操作し挙動の確認を行う.
+int MultiMoveMethod(State p1,State p2,State enemy, int gamecount) {
+  int episodecount = 0;
+  int a = 0,a2=0;
+  int tmp1 = 4,tmp2 = 4,enemyaciton = 4;
+
+  while (episodecount < EPISODECOUNT) {
+    cin >> a;
+    //cin >> a2;
+
+    tmp1 = escapeEnemyAction(enemy, p1,p2);
+
+    enemy = protEnemyCharactor(enemy, tmp1);
+    p1 = protCharactor(p1, a);
+    p2 = protCharactor(p2, 4);
+
+    drawMap();
+
+    if (checkSurroundbyPlayer(p1, p2, enemy) == true) {
+      break;
+    }
+  }
+  return episodecount;
+}
+
 //Map�̏�����
 void resetmap() {
   for (int y = 0; y < mapsize; y++) {
@@ -102,7 +130,6 @@ void resetmap() {
     }
   }
 }
-
 
 State initState(int x, int y) {
   State tmp;
@@ -321,13 +348,13 @@ void EvaluationFunction(int evacount) {
   State evalp2 = initState(dist1(), dist1());
   State evalenemy = initState(dist1(), dist1());
 
-  std::string foldaname = ".\\Evaluation\\";
+  std::string foldaname = ".\\Result\\";
   foldaname.append(IntToString(evacount));
   makeDirectory(foldaname);
 
   ofstream evalresultfile;
   string evalfilename = "Result.txt";
-  evalresultfile.open("Evaluation\\" + IntToString(evacount) + "\\" + evalfilename, std::ios::app);
+  evalresultfile.open("Result\\" + IntToString(evacount) + "\\" + evalfilename, std::ios::app);
 
   while (gamecount < EVALUATIONCOUNT) {
     setPlayer(evalp1);
@@ -516,7 +543,7 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
   return episodecount;
 }
 
-
+//味方がいる方向を検出する.
 int searchPlayerDirection(State myposi, State player2) {
   int direction = 0;
 
@@ -595,6 +622,198 @@ int searchPlayerDirection(State myposi, State player2) {
 
   return direction;
 }
+
+//敵ががいる方向を検出する.主に,敵の回避行動に利用される.
+int searchEnemyDirection(State myposi, State enemy) {
+  int direction = 5;
+
+  State pp;
+  State tmp = { 0,0 };
+  pp.first = enemy.first - myposi.first;
+  pp.second = enemy.second - myposi.second;
+
+  if (myposi.first < enemy.first) {
+    tmp.first = (enemy.first - mapsize) - myposi.first;
+  }
+  else {
+    tmp.first = (mapsize - myposi.first) + enemy.first;
+  }
+
+  //���@���G���艺
+  if (myposi.second < enemy.second) {
+    tmp.second = (enemy.second - mapsize) - myposi.second;
+  }
+  else {
+    tmp.second = (mapsize - myposi.second) + enemy.second;
+  }
+
+  //���Βl�ŋ������v�Z����
+  if (abs(tmp.first) < abs(pp.first)) {
+    pp.first = tmp.first;
+  }
+
+  if (abs(tmp.second) < abs(pp.second)) {
+    pp.second = tmp.second;
+  }
+
+  //視界外にいた時.
+  if (abs(pp.first) > e_directsight) {
+    return direction;
+  }
+  if (abs(pp.second) > e_directsight) {
+    return direction;
+  }
+
+  //四方向を返すところ
+  //左右
+  if (pp.first == 0) {
+    if (pp.second < 0) {
+      return 4;
+    }
+    return 6;
+  }
+  //上下
+  if (pp.second == 0) {
+    if (pp.first < 0) {
+      return 8;
+    }
+    return 2;
+  }
+
+  //斜め方向の処理
+  //左側
+  if (pp.first < 0) {
+    if (pp.second < 0) {
+      return 7;
+    }
+    return 9;
+  }
+  //右側
+  else {
+    if (pp.second < 0) {
+      return 1;
+    }
+    return 3;
+  }
+
+  return direction;
+}
+
+int switchAction(int num){
+  int rand = tworand();
+  switch (num) {
+//4方向から攻める
+  case 2:
+    return 3;                 //up;
+    break;
+  case 4:
+    return 2;                 //right;
+    break;
+  case 6:
+    return 0;                 //left
+    break;
+  case 8:
+    return 1;                 //down
+    break;
+//斜め方向から攻める場合
+  case 1:
+    if (rand == 0) {
+      return 3;                       //right or up;
+    }
+    return 2;
+    break;
+  case 3:
+    if (rand == 0) {
+      return 3;                       //right or up;
+    }
+    return 0;                 //left or up;
+    break;
+  case 7:
+    if (rand == 0) {
+      return 1;                       //right or up;
+    }
+    return 2;                 //right or down
+    break;
+  case 9:
+    if (rand == 0) {
+      return 1;                       //right or up;
+    }
+    return 0;                 //left or down
+    break;
+  default:
+    break;
+  }
+  return 5;
+}
+
+//自機から逃げるように移動する
+int escapeEnemyAction(State enemy, State p1,State p2) {
+  cout << "escapeEnemyAction" << endl;
+  int tmp = searchEnemyDirection(enemy, p1);
+  int tmp2 = searchEnemyDirection(enemy, p2);
+
+  int eaction = 4;
+
+  //両方のプレイヤが見えている場合
+  if(tmp != 5 && tmp2 != 5 ) {
+    //同じ方向から攻める場合.
+    if(tmp == tmp2) {
+      eaction = switchAction(tmp);
+      return eaction;
+    }else{            //違う方向から攻める場合
+      if(tmp < 4 && tmp2 < 4) { //下方向から追いかける場合
+        eaction = 3; //up
+        return eaction;
+      }
+      if(tmp > 6 && tmp2 > 6 ) {//上方向から
+        eaction = 1; //down
+        return eaction;
+      }
+      if(tmp % 3 == 0  && tmp2 % 3 ==0 ) {//右方向から
+        eaction = 0; //left
+        return eaction;
+      }
+
+      if(tmp % 3 == 1  && tmp2 % 3 == 1 ) {//左方向から
+        eaction = 2; //right
+        return eaction;
+      }
+
+      if((tmp < 4 && tmp2 > 6) ||(tmp > 6 && tmp2 < 4)) { //プレイヤが上下から取り囲んでいた時
+        int rand = tworand();
+        if (rand == 0) {
+          eaction = 0;    //right or left;
+        }
+        eaction = 2;
+        return eaction;
+      }
+
+      if((tmp % 3 == 1  && tmp2 % 3 == 0 ) || (tmp % 3 == 0  && tmp2 % 3 == 1 )) { //プレイヤが左右から取り囲んでいた時
+        int rand = tworand();
+        if (rand == 0) {
+          eaction = 1;    //up or down;
+        }
+        eaction = 3;
+        return eaction;
+      }
+
+
+    }
+  }else{              //どっちか片方のプレイヤが見えている
+    //p1のみ見えている場合
+    if(tmp2 == 5) {
+      eaction = switchAction(tmp);
+      return eaction;
+    }
+    //p2のみ見えている場合
+    if(tmp == 5) {
+      eaction =  switchAction(tmp2);
+      return eaction;
+    }
+  }
+  return eaction;
+}
+
 
 State searchRelationEnemy(State playerpositions, State enemypositons) {
   State ep;

@@ -21,22 +21,23 @@
 
 //���ԋ���
 struct State {
-  int first;
-  int second;
-  int pdirection;
-  int locate_enemy_count;
+        int first;
+        int second;
+        int pdirection;
+        int locate_enemy_count;
 };
 
 struct outputData {
-  int first;
-  int second;
-  int efirst;
-  int esecond;
+        int first;
+        int second;
+        int efirst;
+        int esecond;
 };
 
-const int e_eysight = 3;//���E�̍L��
+const int e_eysight = 7;//���E�̍L��
 const int qSize = e_eysight * 2 + 1;//Q�l�̑傫��
 const int p_esight = 7;
+const int e_directsight = 3; //
 //const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
 const int mapsize = 15;
 const int ACTION = 5;
@@ -91,11 +92,19 @@ void outputQvalueTable(int gamecount);
 int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecount, int evacount);
 void EvaluationFunction(int evacount);
 
+int MultiMoveMethod(State p1,State p2,State enemy, int gamecount);
+int escapeEnemyAction(State enemy, State p1,State p2);
+State protEnemyCharactor(State player, int action);
+int escapeEnemyActionDeside(int tmp1action, int tmp2action);
+
+
 int getMAXQValue(State afterstate, int playernumber);
 bool calcSuccessReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
 bool calcFinishReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernu);
 bool calcFaildReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
 
 int searchPlayerDirection(State myposi, State player2);
+int searchEnemyDirection(State enemy, State player);
+
 
 #endif /* Header_h */

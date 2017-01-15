@@ -596,6 +596,9 @@ int searchPlayerDirection(State myposi, State player2) {
   return direction;
 }
 
+
+
+//自分の位置と敵の位置から相対的な位置をいれる.
 State searchRelationEnemy(State playerpositions, State enemypositons) {
   State ep;
   State tmp = { 0,0 };

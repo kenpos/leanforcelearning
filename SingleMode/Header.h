@@ -25,6 +25,7 @@ struct outputData {
 const int eyesight = 7;//���E�̍L��
 const int qSize = eyesight * 2 + 1;//Q�l�̑傫��
 const int p_esight = 3;
+const int e_directsight = 2;
 const int mapsize = 15;
 const int ACTION = 5;
 const bool blindcount = false;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
@@ -72,6 +73,7 @@ int SoloQlearningMethod(State p1, State enemy, int gamecount);
 int SoloMoveMethod(State p1, State enemy, int gamecount);
 int searchPlayerDirection(State myposi, State player2);
 int escapeEnemyAction(State enemy, State p1);
+int searchEnemyDirection(State myposi, State enemy);
 bool calcSoloReward(State state, State afterstate, int action, State player, State enemy, long double AttenuationAlpha);
 //bool calcReward(State state, State afterstate, int action, State player, State player2, State enemy, int playernumber, long double AttenuationAlpha);
 State initState(int, int);

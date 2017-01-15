@@ -555,7 +555,7 @@ int SoloMoveMethod(State p1, State enemy, int gamecount) {
 //自機から逃げるように移動する
 int escapeEnemyAction(State enemy, State p1) {
   cout << "escapeEnemyAction" << endl;
-  int tmp = searchPlayerDirection(enemy, p1);
+  int tmp = searchEnemyDirection(enemy, p1);
   cout << tmp << endl;
 
   int rand = tworand();
@@ -682,7 +682,80 @@ int searchPlayerDirection(State myposi, State player2) {
   return direction;
 }
 
+int searchEnemyDirection(State myposi, State enemy) {
+  int direction = 5;
 
+  State pp;
+  State tmp = { 0,0 };
+  pp.first = enemy.first - myposi.first;
+  pp.second = enemy.second - myposi.second;
+
+  if (myposi.first < enemy.first) {
+    tmp.first = (enemy.first - mapsize) - myposi.first;
+  }
+  else {
+    tmp.first = (mapsize - myposi.first) + enemy.first;
+  }
+
+  //���@���G���艺
+  if (myposi.second < enemy.second) {
+    tmp.second = (enemy.second - mapsize) - myposi.second;
+  }
+  else {
+    tmp.second = (mapsize - myposi.second) + enemy.second;
+  }
+
+  //���Βl�ŋ������v�Z����
+  if (abs(tmp.first) < abs(pp.first)) {
+    pp.first = tmp.first;
+  }
+
+  if (abs(tmp.second) < abs(pp.second)) {
+    pp.second = tmp.second;
+  }
+
+  //視界外にいた時.
+  if (abs(pp.first) > e_directsight) {
+    return direction;
+  }
+  if (abs(pp.second) > e_directsight) {
+    return direction;
+  }
+
+  //四方向を返すところ
+  //左右
+  if (pp.first == 0) {
+    if (pp.second < 0) {
+      return 4;
+    }
+    return 6;
+  }
+  //上下
+  if (pp.second == 0) {
+    if (pp.first < 0) {
+      return 8;
+    }
+    return 2;
+  }
+
+  //斜め方向の処理
+  //左側
+  if (pp.first < 0) {
+    if (pp.second < 0) {
+      return 7;
+    }
+    return 9;
+  }
+  //右側
+  else {
+    if (pp.second < 0) {
+      return 1;
+    }
+    return 3;
+  }
+
+  return direction;
+}
 
 int SoloQlearningMethod(State p1, State enemy, int gamecount)
 {
