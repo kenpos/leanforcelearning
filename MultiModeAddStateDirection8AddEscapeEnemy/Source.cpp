@@ -26,32 +26,33 @@ unsigned int map[mapsize][mapsize] = { 0 };
 
 int outputcount = pow(2,0);
 
-void makeDirectory(std::string path) {
-  std::string command = "mkdir ";
-  command.append(path);
-  system(command.c_str());
-}
-
-string IntToString(int number)
-{
-  stringstream ss;
-  ss << number;
-  return ss.str();
-}
-
 int main() {
   makeDirectory(".\\Result");
   makeDirectory(".\\Evaluation");
   makeDirectory(".\\moveData");
   makeDirectory(".\\Qval");
 
-  State p1 = initState(dist1(), dist1());
-  State p2 = initState(dist1(), dist1());
-  State enemy = initState(dist1(), dist1());
+  resetmap();
+  State p1;
+  State p2;
+  State enemy;
+
+  //マップ上の壁や敵味方が被らないように調整.
+  do {
+    p1 = initState(dist1(), dist1());
+    p2 = initState(dist1(), dist1());
+    enemy = initState(dist1(), dist1());
+  } while((map[p1.first][p1.second] != 2 )&&
+          (map[p2.first][p2.second] != 2 )&&
+          (enemy.first == p1.first && enemy.second == p1.second) &&
+          (enemy.first == p2.first && enemy.second == p2.second)&&
+          (p1.first == p2.first && p1.second == p2.second) );
+  //State wall = initState(dist1(), dist1());
 
   setPlayer(p1);
   setPlayer(p2);
   setEnemy(enemy);
+  //setWall(wall);
 
   initializeQvalue();
   //�t�H���_���������΍쐬
@@ -66,9 +67,14 @@ int main() {
   while (gamecount < MAXGAME) {
     //episodecount = MultiQlearningMethod(p1, p2, enemy, gamecount);
     episodecount = MultiMoveMethod(p1, p2, enemy,gamecount);
-    resetmap();
 
-    while (p1.first == enemy.first && p1.second == enemy.second) {
+    resetmap();
+//被っていないようにマップを作成する.
+    while ( (map[p1.first][p1.second] != 2 )&&
+            (map[p2.first][p2.second] != 2 )&&
+            (enemy.first == p1.first && enemy.second == p1.second) &&
+            (enemy.first == p2.first && enemy.second == p2.second)&&
+            (p1.first == p2.first && p1.second == p2.second) ) {
       p1 = initState(dist1(), dist1());
       p2 = initState(dist1(), dist1());
       enemy = initState(dist1(), dist1());
@@ -100,8 +106,8 @@ int main() {
 //自分で操作し挙動の確認を行う.
 int MultiMoveMethod(State p1,State p2,State enemy, int gamecount) {
   int episodecount = 0;
-  int a = 0,a2=0;
-  int tmp1 = 4,tmp2 = 4,enemyaciton = 4;
+  int a = 0;
+  int tmp1 = 4;
 
   while (episodecount < EPISODECOUNT) {
     cin >> a;
@@ -123,12 +129,47 @@ int MultiMoveMethod(State p1,State p2,State enemy, int gamecount) {
 }
 
 //Map�̏�����
-void resetmap() {
-  for (int y = 0; y < mapsize; y++) {
-    for (int x = 0; x < mapsize; x++) {
-      map[y][x] = 0;
-    }
+//void resetmap() {
+///////
+////////////////  for (int y = 0; y < mapsize; y++) {
+/////////////////////    for (int x = 0; x < mapsize; x++) {
+////////////////      map[y][x] = 0;
+///////    }
+//  }
+//}
+
+int resetmap(){
+  cout<<"ResetMap" << endl;
+
+  //ファイルの読み込み
+  ifstream ifs("map.csv");
+  if(!ifs) {
+    cout<<"入力エラー" << endl;
+    cout << "恐らくファイルが見つからないものと思います" << endl;
+    return -1;
   }
+
+  //csvファイルを1行ずつ読み込む
+  string str;
+  int row = 0;//行
+  int col = 0;//列
+  while(getline(ifs,str)) {
+    string token;
+    istringstream stream(str);
+    //1行のうち、文字列とコンマを分割する
+    while(getline(stream,token,',')) {
+      istringstream stream(token);
+      //すべて文字列として読み込まれるため
+      //数値は変換が必要
+      //int temp=stof(token);       //stof(string str) : stringをfloatに変換
+      map[row][col] = stof(token);
+      cout<<"row" <<row <<":" << "col" << col<< endl;
+      col++;
+    }
+    col = 0;
+    row++;
+  }
+  return 0;
 }
 
 State initState(int x, int y) {
@@ -156,6 +197,10 @@ void setPlayer(State player) {
 
 void setEnemy(State enemy) {
   map[enemy.first][enemy.second] = 3;
+}
+
+void setWall(State wall) {
+  map[wall.first][wall.second] = 2;
 }
 
 void resetPlayer(State player) {

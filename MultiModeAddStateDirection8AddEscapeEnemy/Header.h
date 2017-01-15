@@ -21,17 +21,17 @@
 
 //���ԋ���
 struct State {
-        int first;
-        int second;
-        int pdirection;
-        int locate_enemy_count;
+  int first;
+  int second;
+  int pdirection;
+  int locate_enemy_count;
 };
 
 struct outputData {
-        int first;
-        int second;
-        int efirst;
-        int esecond;
+  int first;
+  int second;
+  int efirst;
+  int esecond;
 };
 
 const int e_eysight = 7;//���E�̍L��
@@ -40,6 +40,7 @@ const int p_esight = 7;
 const int e_directsight = 3; //
 //const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
 const int mapsize = 15;
+const int wallstate =0b11111111;
 const int ACTION = 5;
 const int PDIRECTION = 8;
 const bool flag_pldirection = true;
@@ -69,11 +70,12 @@ const double subrewards = 0;
 
 
 //static bool checkExistenceOfFolder(const std::string folder_name);
-void resetmap();
+int resetmap();
 void drawMap();
 State initState(int, int);
 void setPlayer(State player);
 void setEnemy(State enemy);
+void setWall(State wall);
 void resetPlayer(State player);
 bool checkNexttoEnemy(State player, State enemy);
 bool checkSurroundbyPlayer(State player1, State player2, State enemy);
@@ -105,6 +107,19 @@ bool calcFaildReward(State state, int action, double maxQ, long double Attenuati
 
 int searchPlayerDirection(State myposi, State player2);
 int searchEnemyDirection(State enemy, State player);
+
+void makeDirectory(std::string path) {
+  std::string command = "mkdir ";
+  command.append(path);
+  system(command.c_str());
+}
+
+std::string IntToString(int number)
+{
+  std::stringstream ss;
+  ss << number;
+  return ss.str();
+}
 
 
 #endif /* Header_h */
