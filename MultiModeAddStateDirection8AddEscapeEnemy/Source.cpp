@@ -65,8 +65,8 @@ int main() {
   int episodecount = 0;
   //���C�����[�v
   while (gamecount < MAXGAME) {
-    //episodecount = MultiQlearningMethod(p1, p2, enemy, gamecount);
-    episodecount = MultiMoveMethod(p1, p2, enemy,gamecount);
+    episodecount = MultiQlearningMethod(p1, p2, enemy, gamecount);
+    //episodecount = MultiMoveMethod(p1, p2, enemy,gamecount);
 
     resetmap();
 //被っていないようにマップを作成する.
@@ -448,10 +448,12 @@ int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecoun
     int p2action = chooseEvalAnAction(p2state, 2);
 
     //ランダムにキャラクターを動かす
-    if (flag_movenemy == true) {
+    if (flag_movenemy == "RANDOM") {
       enemy = protEnemyCharactor(enemy, action(engine));
-    }
-    else {
+    }else if(flag_movenemy == "ESCAPE") {
+      int tmp1 = escapeEnemyAction(enemy, p1,p2);
+      enemy = protEnemyCharactor(enemy, tmp1);
+    }else{
       enemy = protEnemyCharactor(enemy, 4);
     }
 
@@ -520,8 +522,13 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     int p2action = chooseAnAction(p2state, 2);
 
     //�����_���ɃL�����N�^�[�𓮂���
-    if (flag_movenemy == true) {
+    if (flag_movenemy == "RANDOM") {
       enemy = protEnemyCharactor(enemy, action(engine));
+    }else if(flag_movenemy == "ESCAPE") {
+      int tmp1 = escapeEnemyAction(enemy, p1,p2);
+      enemy = protEnemyCharactor(enemy, tmp1);
+    }else{
+      enemy = protEnemyCharactor(enemy, 4);
     }
 
     //�s���̎��{
