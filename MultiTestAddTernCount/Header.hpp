@@ -1,4 +1,4 @@
-//
+﻿//
 //  Header.h
 //  LeanForceLearning
 //
@@ -23,50 +23,57 @@
 struct State {
   int first;
   int second;
-  int pdirection;
-  int locate_enemy_count;
+  int allyfirst;
+  int allysecond;
+  int pterncount;
 };
 
 struct outputData {
   int p1first;
   int p1second;
+  int p2first;
+  int p2second;
   int efirst;
   int esecond;
 };
 
-const int e_eysight = 7;//���E�̍L��
-const int qSize = e_eysight * 2 + 1;//Q�l�̑傫��
-const int p_esight = 7;
 //const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
+const int e_eysight = 3;//���E�̍L��
+const int eqSize = e_eysight * 2 + 1;//Q�l�̑傫��
+const int p_esight = 7;
+const int pqSize = p_esight * 2+1; //Q�l�̑傫��
+
 const int mapsize = 15;
 const int ACTION = 5;
-const bool pldirection = true;
-const bool blindcount = false;//���^�[���G�����Ă��Ȃ����@�Ƃ������Ԑ��𔽉f�����邩�ۂ�
-const bool checkmovenemy = false;
-const int MAXGAME = 1000000;//��
+const int MAXSIGHT = 8;
+const bool flag_checkmovenemy = false;
+
+const int MAXGAME = 100000000;//��
 const int EPISODECOUNT = 2000;
-const int EVALUATIONCOUNT = 10;
+const int EVALUATIONCOUNT = 5000;
 const int EPSILON = 40;
 
+const double gensui = 1000000;
 const double ganna = 0.8;
 const double alpha = 0.1;
 const double faild = 0;
 const double rewards = 100;
 const double subrewards = 0;
+const int TERNCOUNT = 21;
 
-//const std::string foldaname = "ganna" + std::to_string(gamma)
-//+ "alpha" + std::to_string(alpha)
-//+ "rewards" + std::to_string(rewards)
-//+ "eysight" + std::to_string(eyesight)
-//+ "mapsize" + std::to_string(mapsize)
-//+ "MAXGAME" + std::to_string(MAXGAME)
-//+ "EPISODECOUNT" + std::to_string(EPISODECOUNT)
-//+ "blindcount" + std::to_string(blindcount)
-//+ "checkmovenemy" + std::to_string(checkmovenemy)
-//+ "EPSILON" + std::to_string(EPSILON);
+void makeDirectory(std::string path) {
+  std::string command = "mkdir ";
+  command.append(path);
+  system(command.c_str());
+}
 
+std::string IntToString(int number)
+{
+  std::stringstream ss;
+  ss << number;
+  return ss.str();
+}
 
-//static bool checkExistenceOfFolder(const std::string folder_name);
 void resetmap();
 void drawMap();
 State initState(int, int);
@@ -88,9 +95,14 @@ int chooseEvalAnAction(State playerstate, int playernum);
 
 int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount);
 void outputQvalueTable(int gamecount);
-int MultiQlearningEvaluationMethods(State p1, State p2, State enemy);
 int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecount, int evacount);
-void EvaluationFunction(int evacount,int num);
+void EvaluationFunction(int evacount);
+void outputEvaluationMoveData(int evacount,int gamecount,std::vector<outputData> tmpd);
+void outputEvalResult(int evacount,std::vector<int> tmpv);
+
+std::pair<int, int> searchRelationAlly(State playerpositions, State enemypositons);
+void outputAllResult(std::vector<int> tmpv);
+
 
 int getMAXQValue(State afterstate, int playernumber);
 bool calcSuccessReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);

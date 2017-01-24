@@ -14,7 +14,7 @@ double p2Qvalue[qSize][qSize][ACTION][qSize][ACTION] = { 0 };
 
 unsigned int map[mapsize][mapsize] = { 0 };
 
-int outputcount = 20 *pow(2,12);
+int outputcount = 20 *pow(2,0);
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -314,7 +314,7 @@ void EvaluationFunction(int evacount,int num) {
   makeDirectory(foldaname);
 
   ofstream evalresultfile;
-  string evalfilename = "EvaluationResult.txt";
+  string evalfilename = "Result.txt";
   evalresultfile.open("Result\\" + IntToString(evacount) + "\\" + evalfilename, std::ios::app);
 
   while (evagamecount < EVALUATIONCOUNT) {
