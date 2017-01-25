@@ -70,6 +70,7 @@ int main() {
       p2 = initState(dist1(), dist1());
       enemy = initState(dist1(), dist1());
     }
+
     setPlayer(p1);
     setPlayer(p2);
     setEnemy(enemy);

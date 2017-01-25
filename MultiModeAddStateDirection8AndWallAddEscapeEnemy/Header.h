@@ -50,8 +50,8 @@ const bool flag_blindcount = false;//ï¿½ï¿½ï¿½^ï¿½[ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿
 const bool flag_wallstate = true;
 const std::string flag_movenemy = "ESCAPE";  //"ESCAPE","RANDOM",""
 const int MAXGAME = 10000000;//ï¿½ï¿½
-const int EPISODECOUNT = 2000;
-const int EVALUATIONCOUNT = 10000;
+const int EPISODECOUNT = 5000;
+const int EVALUATIONCOUNT = 10;
 const int EPSILON = 40;
 
 const double ganna = 0.8;
@@ -95,7 +95,9 @@ int chooseEvalAnAction(State playerstate, int playernum);
 int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount);
 void outputQvalueTable(int gamecount);
 int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecount, int evacount);
-void EvaluationFunction(int evacount);
+int MultiQlearningEvaluationMethods(State p1, State p2, State enemy);
+
+void EvaluationFunction(int evacount,int num);
 
 int MultiMoveMethod(State p1,State p2,State enemy, int gamecount);
 int escapeEnemyAction(State enemy, State p1,State p2);
