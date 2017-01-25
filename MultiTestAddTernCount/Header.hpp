@@ -42,6 +42,7 @@ const int e_eysight = 3;//���E�̍L��
 const int eqSize = e_eysight * 2 + 1;//Q�l�̑傫��
 const int p_esight = 7;
 const int pqSize = p_esight * 2+1; //Q�l�̑傫��
+const int TERNCOUNT = 21;
 
 const int mapsize = 15;
 const int ACTION = 5;
@@ -51,15 +52,14 @@ const bool flag_checkmovenemy = false;
 const int MAXGAME = 100000000;//��
 const int EPISODECOUNT = 2000;
 const int EVALUATIONCOUNT = 5000;
-const int EPSILON = 40;
+const int EPSILON = 10; //0.02
 
 const double gensui = 1000000;
 const double ganna = 0.8;
 const double alpha = 0.1;
-const double faild = 0;
+const double faildrewards = 0;
 const double rewards = 100;
 const double subrewards = 0;
-const int TERNCOUNT = 21;
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
@@ -104,10 +104,10 @@ std::pair<int, int> searchRelationAlly(State playerpositions, State enemypositon
 void outputAllResult(std::vector<int> tmpv);
 
 
-int getMAXQValue(State afterstate, int playernumber);
+int getMAXQValue(State afterstate,int nextaction, int playernumber);
 bool calcSuccessReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
-bool calcFinishReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernu);
-bool calcFaildReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
+bool calcFinishReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
+bool calcFaildReward (State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
 
 
 #endif /* Header_h */

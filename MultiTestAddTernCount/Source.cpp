@@ -227,15 +227,15 @@ void outputQvalueTable(int gamecount) {
 }
 
 
-int getMAXQValue(State afterstate, int playernumber) {
+int getMAXQValue(State afterstate,int nextaction, int playernumber) {
   double maxQ = 0;
   if (playernumber == 1) {
-    int nextaction = getMaxQAction(afterstate, playernumber);                 //after�ł̍ő�Q�l���o���s��
+    //int nextaction = getMaxQAction(afterstate, playernumber);                 //after�ł̍ő�Q�l���o���s��
     maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.allyfirst][afterstate.allysecond][afterstate.pterncount][nextaction];
   }
 
   if (playernumber == 2) {
-    int nextaction = getMaxQAction(afterstate, playernumber);                 //after�ł̍ő�Q�l���o���s��
+    //int nextaction = getMaxQAction(afterstate, playernumber);                 //after�ł̍ő�Q�l���o���s��
     maxQ=p2Qvalue[afterstate.first][afterstate.second][afterstate.allyfirst][afterstate.allysecond][afterstate.pterncount][nextaction];
   }
   return maxQ;
@@ -286,6 +286,7 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     p1 = protCharactor(p1, p1action);
     p2 = protCharactor(p2, p2action);
 
+//実際に経験したs_t+1を用いる
     p1afterstate = searchRelationEnemy(p1, enemy);
     p2afterstate = searchRelationEnemy(p2, enemy);
     p1.pterncount = p1afterstate.pterncount;
@@ -299,9 +300,12 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     p2afterstate.allyfirst = p2tmpally.first;
     p2afterstate.allysecond = p2tmpally.second;
 
+    int p1nextaction = chooseAnAction(p1state, 1);
+    int p2nextaction = chooseAnAction(p2state, 2);
+
     //calcReward
-    double p1maxQ = getMAXQValue(p1afterstate, 1);
-    double p2maxQ = getMAXQValue(p2afterstate, 2);
+    double p1maxQ = getMAXQValue(p1afterstate,p1nextaction, 1);
+    double p2maxQ = getMAXQValue(p2afterstate,p2nextaction, 2);
 
     if (checkSurroundbyPlayer(p1, p2, enemy) == true) {
       calcFinishReward(p1state, p1action, p1maxQ, AAlpha, 1);
@@ -556,18 +560,25 @@ State searchRelationEnemy(State playerpositions, State allyplayer) {
 //Q�l�ɂ����Č����t���������s�����I������.
 //��-�O���[�f�B�@
 int chooseAnAction(State playerstate, int playernum) {
-  int randvalue = makerandom(engine);
   //�s�����I��
   int action;
+  //int x = 0,y = 0;
+  //const int dx[] = { 0,1,0,-1,0 };
+  //const int dy[] = { -1,0,1,0,0 };
+//do {
+  int randvalue = makerandom(engine);
   if (randvalue < EPSILON) {
     //�����_���I��
     action = randvalue % 5;
-
   }
   else {
     //�ʏ��́AQ�l���ő剻�����s�����I��
     action = getMaxQAction(playerstate, playernum);
   }
+  //x = playerstate.first + dx[action];
+  //y = playerstate.second + dy[action];
+  //} while(map[x][y] == 0);//移動できるかどうかチェックする.
+
   return action;
 }
 
@@ -581,9 +592,12 @@ int chooseEvalAnAction(State playerstate, int playernum) {
 
 //����state�ɂ����āA�ő���Q�l�ƂȂ��s�����Ԃ�
 int getMaxQAction(State state, int playernum) {
+  //int x = 0,y = 0;
+  //const int dx[] = { 0,1,0,-1,0 };
+  //const int dy[] = { -1,0,1,0,0 };
   int action = 4;
   double maxQ = -1.0;
-
+  //do {
   if (playernum == 1) {
     for (int i = 0; i < ACTION; i++) {
       double q = p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][i];
@@ -605,38 +619,48 @@ int getMaxQAction(State state, int playernum) {
       }
     }
   }
+  //x = state.first + dx[action];
+  //y = state.second + dy[action];
+//}
+//while(map[x][y] == 0); //移動できるかどうかチェックする.
   return action;
 }
 
 bool calcSuccessReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum) {
   if (playernum == 1) {
-    p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (subrewards + ganna * maxQ);
+    p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] =
+      p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (subrewards + (ganna * maxQ) - p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action]);
   }
 
   if (playernum == 2) {
-    p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] = (1 - AttenuationAlpha)*p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (subrewards + ganna * maxQ);
+    p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] =
+      p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (subrewards + (ganna * maxQ) - p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action]);
   }
   return true;
 }
 
 bool calcFinishReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum) {
   if (playernum == 1) {
-    p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] = (1 - AttenuationAlpha)* p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (rewards + ganna * maxQ);
+    p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] =
+      p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (rewards + (ganna * maxQ) - p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action]);
   }
 
   if (playernum == 2) {
-    p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] = (1 - AttenuationAlpha)*p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (rewards + ganna * maxQ);
+    p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] =
+      p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (rewards + (ganna * maxQ) - p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action]);
   }
   return true;
 }
 
 bool calcFaildReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum) {
   if (playernum == 1) {
-    p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] = (1 - AttenuationAlpha)*p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (faild + ganna * maxQ);
+    p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] =
+      p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (faildrewards + (ganna * maxQ) - p1Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action]);
   }
 
   if (playernum == 2) {
-    p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] = (1 - AttenuationAlpha)*p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (faild + ganna * maxQ);
+    p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] =
+      p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action] + AttenuationAlpha* (faildrewards + (ganna * maxQ) - p2Qvalue[state.first][state.second][state.allyfirst][state.allysecond][state.pterncount][action]);
   }
   return true;
 }

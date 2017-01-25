@@ -243,8 +243,8 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
 {
   int episodecount = 0;
 
-  int c = 100000 + gamecount;
-  double AttenuationAlpha = (double)100000 / (double)c;
+  int c = gensui + gamecount;
+  double AttenuationAlpha = gensui / (double)c;
   double AAlpha = (double)alpha *AttenuationAlpha;
   std::pair<int,int> p1tmpally = {0,0};
   std::pair<int,int> p2tmpally = {0,0};

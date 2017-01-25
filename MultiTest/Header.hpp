@@ -47,17 +47,17 @@ const int ACTION = 5;
 const int MAXSIGHT = 8;
 const bool flag_checkmovenemy = false;
 
-const int MAXGAME = 500000000;//��
+const int MAXGAME = 100000000;//��
 const int EPISODECOUNT = 2000;
 const int EVALUATIONCOUNT = 5000;
 const int EPSILON = 40;
 
+const double gensui = 1000000;
 const double ganna = 0.8;
 const double alpha = 0.1;
 const double faild = 0;
 const double rewards = 100;
 const double subrewards = 0;
-
 
 void makeDirectory(std::string path) {
   std::string command = "mkdir ";
