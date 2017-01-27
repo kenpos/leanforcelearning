@@ -231,16 +231,19 @@ void outputQvalueTable(int gamecount) {
 }
 
 
-double getMAXQValue(State afterstate, int nextaction, int playernumber) {
+double getMAXQValue(State afterstate, int playernumber) {
   double maxQ = 0;
+  int action = getMaxQAction(afterstate, playernumber);
+
   if (playernumber == 1) {
+
     //int nextaction = getMaxQAction(afterstate, playernumber);                 //after�ł̍ő�Q�l���o���s��
-    maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.allyfirst][afterstate.allysecond][afterstate.pterncount][afterstate.allyactionhistory[0]][afterstate.allyactionhistory[1]][nextaction];
+    maxQ = p1Qvalue[afterstate.first][afterstate.second][afterstate.allyfirst][afterstate.allysecond][afterstate.pterncount][afterstate.allyactionhistory[0]][afterstate.allyactionhistory[1]][action];
   }
 
   if (playernumber == 2) {
     //int nextaction = getMaxQAction(afterstate, playernumber);                 //after�ł̍ő�Q�l���o���s��
-    maxQ = p2Qvalue[afterstate.first][afterstate.second][afterstate.allyfirst][afterstate.allysecond][afterstate.pterncount][afterstate.allyactionhistory[0]][afterstate.allyactionhistory[1]][nextaction];
+    maxQ = p2Qvalue[afterstate.first][afterstate.second][afterstate.allyfirst][afterstate.allysecond][afterstate.pterncount][afterstate.allyactionhistory[0]][afterstate.allyactionhistory[1]][action];
   }
   return maxQ;
 }
@@ -325,12 +328,9 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     p2afterstate.allyfirst = p2tmpally.first;
     p2afterstate.allysecond = p2tmpally.second;
 
-    int p1nextaction = chooseAnAction(p1state, 1);
-    int p2nextaction = chooseAnAction(p2state, 2);
-
     //calcReward
-    double p1maxQ = getMAXQValue(p1afterstate, p1nextaction, 1);
-    double p2maxQ = getMAXQValue(p2afterstate, p2nextaction, 2);
+    double p1maxQ = getMAXQValue(p1afterstate, 1);
+    double p2maxQ = getMAXQValue(p2afterstate, 2);
 
     if (checkSurroundbyPlayer(p1, p2, enemy) == true) {
       calcFinishReward(p1state, p1action, p1maxQ, AAlpha, 1);

@@ -37,9 +37,9 @@ struct outputData {
   int esecond;
 };
 
-const int e_eysight = 3; //敵の周囲何マスを格納するのか確認する
+const int e_eysight = 7; //敵の周囲何マスを格納するのか確認する
 const int eqSize = e_eysight * 2 + 1; //敵の相対位置を格納する
-const int p_esight = 7; //自分の周囲何マスを見ているのか判定する
+const int p_esight = 1; //自分の周囲何マスを見ているのか判定する
 const int pqSize = p_esight * 2 + 1; //味方の相対位置を格納する
 const int TERNCOUNT = 21; //何ターン敵を見ていないかを数える
 const int MAXHISTORY = 2; //味方の過去の行動を保持
@@ -51,9 +51,9 @@ const int mapsize = 15;
 const int MAXSIGHT = 8;
 const bool flag_checkmovenemy = false;
 
-const int MAXGAME = 1000000;//��
+const int MAXGAME = 100000000;//��
 const int EPISODECOUNT = 2000;
-const int EVALUATIONCOUNT = 5000;
+const int EVALUATIONCOUNT = 100000;
 const int EPSILON = 10; //0.02
 
 const double gensui = 1000000;

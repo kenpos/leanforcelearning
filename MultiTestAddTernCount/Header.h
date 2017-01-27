@@ -1,4 +1,4 @@
-﻿//
+//
 //  Header.h
 //  LeanForceLearning
 //
