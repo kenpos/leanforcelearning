@@ -38,7 +38,7 @@ struct outputData {
 };
 
 //const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
-const int e_eysight = 7;//���E�̍L��
+const int e_eysight = 3;//���E�̍L��
 const int eqSize = e_eysight * 2 + 1;//Q�l�̑傫��
 const int p_esight = 1;
 const int pqSize = p_esight * 2+1; //Q�l�̑傫��

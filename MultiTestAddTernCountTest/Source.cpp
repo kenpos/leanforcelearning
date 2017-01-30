@@ -266,11 +266,11 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     p2.pterncount = p2state.pterncount;
 
 
-    p1tmpally = searchRelationAlly(p2,p1);
+    p1tmpally = searchRelationAlly(p1,p2);
     p1state.allyfirst =  p1tmpally.first;
     p1state.allysecond = p1tmpally.second;
 
-    p2tmpally = searchRelationAlly(p1,p2);
+    p2tmpally = searchRelationAlly(p2,p1);
     p2state.allyfirst =  p2tmpally.first;
     p2state.allysecond = p2tmpally.second;
 
@@ -294,11 +294,11 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     p1.pterncount = p1afterstate.pterncount;
     p2.pterncount = p2afterstate.pterncount;
 
-    p1tmpally = searchRelationAlly(p2,p1);
+    p1tmpally = searchRelationAlly(p1,p2);
     p1afterstate.allyfirst = p1tmpally.first;
     p1afterstate.allysecond = p1tmpally.second;
 
-    p2tmpally = searchRelationAlly(p1,p2);
+    p2tmpally = searchRelationAlly(p2,p1);
     p2afterstate.allyfirst = p2tmpally.first;
     p2afterstate.allysecond = p2tmpally.second;
 
@@ -385,10 +385,10 @@ int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecoun
     p1.pterncount = p1state.pterncount;
     p2.pterncount = p2state.pterncount;
 
-    p1tmpally = searchRelationAlly(p2,p1);
+    p1tmpally = searchRelationAlly(p1,p2);
     p1state.allyfirst = p1tmpally.first;
     p1state.allysecond = p1tmpally.second;
-    p2tmpally = searchRelationAlly(p1,p2);
+    p2tmpally = searchRelationAlly(p2,p1);
     p2state.allyfirst = p2tmpally.first;
     p2state.allysecond = p2tmpally.second;
 
@@ -437,27 +437,27 @@ void outputEvaluationMoveData(int evacount,int gamecount,std::vector<outputData>
 }
 
 //トーラス図形における味方の相対位置を獲得する.
-std::pair<int, int> searchRelationAlly(State playerpositions, State enemypositons) {
+std::pair<int, int> searchRelationAlly(State playerpositions, State allyplayer) {
   std::pair<int, int> ally = { 0,0 };
   std::pair<int, int> tmp = { 0,0 };
 
-  ally.first = enemypositons.first - playerpositions.first;
-  ally.second = enemypositons.second - playerpositions.second;
+  ally.first = allyplayer.first - playerpositions.first;
+  ally.second = allyplayer.second - playerpositions.second;
 
   //���@���G���荶
-  if (playerpositions.first < enemypositons.first) {
-    tmp.first = (enemypositons.first - mapsize) - playerpositions.first;
+  if (playerpositions.first < allyplayer.first) {
+    tmp.first = (allyplayer.first - mapsize) - playerpositions.first;
   }
   else {
-    tmp.first = (mapsize - playerpositions.first) + enemypositons.first;
+    tmp.first = (mapsize - playerpositions.first) + allyplayer.first;
   }
 
   //���@���G���艺
-  if (playerpositions.second < enemypositons.second) {
-    tmp.second = (enemypositons.second - mapsize) - playerpositions.second;
+  if (playerpositions.second < allyplayer.second) {
+    tmp.second = (allyplayer.second - mapsize) - playerpositions.second;
   }
   else {
-    tmp.second = (mapsize - playerpositions.second) + enemypositons.second;
+    tmp.second = (mapsize - playerpositions.second) + allyplayer.second;
   }
 
   //���Βl�ŋ������v�Z����
@@ -486,31 +486,31 @@ std::pair<int, int> searchRelationAlly(State playerpositions, State enemypositon
 }
 
 //トーラス図形における敵の相対位置を獲得する.
-State searchRelationEnemy(State playerpositions, State allyplayer) {
+State searchRelationEnemy(State playerpositions, State enemypositons) {
   State ep = {0,0,0,0,0};
   State tmp = { 0,0,0,0,0};
   ep.pterncount = 0;
 
-  ep.first = allyplayer.first - playerpositions.first;
-  ep.second = allyplayer.second - playerpositions.second;
+  ep.first = enemypositons.first - playerpositions.first;
+  ep.second = enemypositons.second - playerpositions.second;
   ep.allyfirst  = playerpositions.allyfirst;
   ep.allysecond = playerpositions.allysecond;
   ep.pterncount = playerpositions.pterncount;
 
   //���@���G���荶
-  if (playerpositions.first < allyplayer.first) {
-    tmp.first = (allyplayer.first - mapsize) - playerpositions.first;
+  if (playerpositions.first < enemypositons.first) {
+    tmp.first = (enemypositons.first - mapsize) - playerpositions.first;
   }
   else {
-    tmp.first = (mapsize - playerpositions.first) + allyplayer.first;
+    tmp.first = (mapsize - playerpositions.first) + enemypositons.first;
   }
 
   //���@���G���艺
-  if (playerpositions.second < allyplayer.second) {
-    tmp.second = (allyplayer.second - mapsize) - playerpositions.second;
+  if (playerpositions.second < enemypositons.second) {
+    tmp.second = (enemypositons.second - mapsize) - playerpositions.second;
   }
   else {
-    tmp.second = (mapsize - playerpositions.second) + allyplayer.second;
+    tmp.second = (mapsize - playerpositions.second) + enemypositons.second;
   }
 
   //���Βl�ŋ������v�Z����
@@ -688,10 +688,10 @@ int MultiMoveMethod(State p1,State p2,State enemy, int gamecount) {
     p1.pterncount = p1state.pterncount;
     p2.pterncount = p2state.pterncount;
 
-    p1tmpally = searchRelationAlly(p2,p1);
+    p1tmpally = searchRelationAlly(p1,p2);
     cout <<"Ally" << p1tmpally.first <<","<<p1tmpally.second << endl;
 
-    p2tmpally = searchRelationAlly(p1,p2);
+    p2tmpally = searchRelationAlly(p2,p1);
     cout << "Ally" << p2tmpally.first <<","<<p2tmpally.second << endl;
 
 
