@@ -259,40 +259,51 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
   State p2afterstate = {0,0,0,0,0};
 
   while (episodecount < EPISODECOUNT) {
+
+    //敵の相対座標
+    //敵が何ターン見えていないかとい情報取得
     p1state = searchRelationEnemy(p1, enemy);
     p2state = searchRelationEnemy(p2, enemy);
-    //何ターン見ていないかという情報を反映させる．
+
+    //味方相対座標
+    p1tmpally = searchRelationAlly(p1,p2);
+    p2tmpally = searchRelationAlly(p2,p1);
+
+    //味方の相対座標反映
     p1.pterncount = p1state.pterncount;
     p2.pterncount = p2state.pterncount;
 
-
-    p1tmpally = searchRelationAlly(p1,p2);
+    //プレイヤの移動で使うためここで反映させる
     p1state.allyfirst =  p1tmpally.first;
     p1state.allysecond = p1tmpally.second;
-
-    p2tmpally = searchRelationAlly(p2,p1);
     p2state.allyfirst =  p2tmpally.first;
     p2state.allysecond = p2tmpally.second;
 
-    //�����_���ɃL�����N�^�[�𓮂���
+
+    //敵の移動
     if (flag_checkmovenemy == true) {
       enemy = protEnemyCharactor(enemy, action(engine));
     }else {
       enemy = protEnemyCharactor(enemy, 4);
     }
 
-    //プレイヤの行動
+    //プレイヤの行動の選択
     int p1action = chooseAnAction(p1state, 1);
     int p2action = chooseAnAction(p2state, 2);
 
+    //プレイヤの位置描画
     p1 = protCharactor(p1, p1action);
     p2 = protCharactor(p2, p2action);
 
-//実際に経験したs_t+1を用いる
+    //結果に違和感があればこれを消して確かめる事.
+    p1.pterncount = p1.pterncount -1;
+    p2.pterncount = p2.pterncount -1;
+
+
+    //実際に経験したs_t+1を用いる
     p1afterstate = searchRelationEnemy(p1, enemy);
     p2afterstate = searchRelationEnemy(p2, enemy);
-    p1.pterncount = p1afterstate.pterncount;
-    p2.pterncount = p2afterstate.pterncount;
+
 
     p1tmpally = searchRelationAlly(p1,p2);
     p1afterstate.allyfirst = p1tmpally.first;
@@ -301,6 +312,10 @@ int MultiQlearningMethod(State p1, State p2, State enemy, int gamecount)
     p2tmpally = searchRelationAlly(p2,p1);
     p2afterstate.allyfirst = p2tmpally.first;
     p2afterstate.allysecond = p2tmpally.second;
+
+
+    p1.pterncount = p1afterstate.pterncount;
+    p2.pterncount = p2afterstate.pterncount;
 
     //calcReward
     double p1maxQ = getMAXQValue(p1afterstate, 1);
@@ -382,15 +397,17 @@ int MultiQlearningEvaluationMethod(State p1, State p2, State enemy, int gamecoun
     //敵の位置を自分との相対位置で認識
     p1state = searchRelationEnemy(p1, enemy);
     p2state = searchRelationEnemy(p2, enemy);
-    p1.pterncount = p1state.pterncount;
-    p2.pterncount = p2state.pterncount;
-
     p1tmpally = searchRelationAlly(p1,p2);
     p1state.allyfirst = p1tmpally.first;
     p1state.allysecond = p1tmpally.second;
     p2tmpally = searchRelationAlly(p2,p1);
     p2state.allyfirst = p2tmpally.first;
     p2state.allysecond = p2tmpally.second;
+    p1.pterncount = p1state.pterncount;
+    p2.pterncount = p2state.pterncount;
+
+    //cout <<"P1 Tern " << p1.pterncount << endl;
+    //cout <<"P2 Tern " << p2.pterncount << endl;
 
     //Q値に基づく行動の選択
     int p1action = chooseEvalAnAction(p1state, 1);
@@ -764,15 +781,3 @@ int main(int argc, char const *argv[]) {
 
   return 0;
 }
-
-//void outputAllResult(vector<int> tmpv){
-//  ofstream resultfile;
-//  string filename = "Result.txt";
-//  resultfile.open("Result\\" + filename, std::ios::app);
-//  int gamecount = 0;
-//  for(auto var : tmpv) {
-//    resultfile << gamecount << "," << var << std::endl;
-//    gamecount++;
-//  }
-//  resultfile.close();
-//}

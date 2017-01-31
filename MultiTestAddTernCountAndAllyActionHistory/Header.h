@@ -52,7 +52,7 @@ const int MAXSIGHT = 8;
 const bool flag_checkmovenemy = false;
 
 const int MAXGAME = 100000000;//��
-const int EPISODECOUNT = 2000;
+const int EPISODECOUNT = 5000;
 const int EVALUATIONCOUNT = 100000;
 const int EPSILON = 10; //0.02
 
