@@ -20,26 +20,26 @@
 
 //���ԋ���
 struct State {
-  int first;
-  int second;
-  int allyfirst;
-  int allysecond;
-  int pterncount;
-  std::vector<int> allyactionhistory;
+        int first;
+        int second;
+        int allyfirst;
+        int allysecond;
+        int pterncount;
+        std::vector<int> allyactionhistory;
 };
 
 struct outputData {
-  int p1first;
-  int p1second;
-  int p2first;
-  int p2second;
-  int efirst;
-  int esecond;
+        int p1first;
+        int p1second;
+        int p2first;
+        int p2second;
+        int efirst;
+        int esecond;
 };
 
-const int e_eysight = 7; //敵の周囲何マスを格納するのか確認する
+const int e_eysight = 3; //敵の周囲何マスを格納するのか確認する
 const int eqSize = e_eysight * 2 + 1; //敵の相対位置を格納する
-const int p_esight = 1; //自分の周囲何マスを見ているのか判定する
+const int p_esight = 7; //自分の周囲何マスを見ているのか判定する
 const int pqSize = p_esight * 2 + 1; //味方の相対位置を格納する
 const int TERNCOUNT = 21; //何ターン敵を見ていないかを数える
 const int MAXHISTORY = 2; //味方の過去の行動を保持
@@ -52,8 +52,8 @@ const int MAXSIGHT = 8;
 const bool flag_checkmovenemy = false;
 
 const int MAXGAME = 100000000;//��
-const int EPISODECOUNT = 5000;
-const int EVALUATIONCOUNT = 100000;
+const int EPISODECOUNT = 2000;
+const int EVALUATIONCOUNT = 5000;
 const int EPSILON = 10; //0.02
 
 const double gensui = 1000000;
@@ -64,16 +64,16 @@ const double rewards = 100;
 const double subrewards = 0;
 
 void makeDirectory(std::string path) {
-  std::string command = "mkdir ";
-  command.append(path);
-  system(command.c_str());
+        std::string command = "mkdir ";
+        command.append(path);
+        system(command.c_str());
 }
 
 std::string IntToString(int number)
 {
-  std::stringstream ss;
-  ss << number;
-  return ss.str();
+        std::stringstream ss;
+        ss << number;
+        return ss.str();
 }
 
 void resetmap();
@@ -104,7 +104,7 @@ void outputEvalResult(int evacount, std::vector<int> tmpv);
 
 std::pair<int, int> searchRelationAlly(State playerpositions, State enemypositons);
 
-double getMAXQValue(State afterstate, int nextaction, int playernumber);
+double getMAXQValue(State afterstate, int playernumber);
 bool calcSuccessReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
 bool calcFinishReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);
 bool calcFaildReward(State state, int action, double maxQ, long double AttenuationAlpha, int playernum);

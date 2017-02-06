@@ -40,7 +40,7 @@ struct outputData {
 //const int p_qSize = p_esight * 2 + 1;//Q�l�̑傫��
 const int e_eysight = 3;//���E�̍L��
 const int eqSize = e_eysight * 2 + 1;//Q�l�̑傫��
-const int p_esight = 1;
+const int p_esight = 7;
 const int pqSize = p_esight * 2+1; //Q�l�̑傫��
 const int TERNCOUNT = 21;
 
@@ -49,10 +49,10 @@ const int ACTION = 5;
 const int MAXSIGHT = 8;
 const bool flag_checkmovenemy = false;
 
-const int MAXGAME = 100000000;//��
+const int MAXGAME = 10000000;//��
 const int EPISODECOUNT = 2000;
 const int EVALUATIONCOUNT = 5000;
-const int EPSILON = 2; //0.02
+const int EPSILON = 10; //0.02
 
 const double gensui = 1000000;
 const double ganna = 0.8;
